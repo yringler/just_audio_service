@@ -1,0 +1,114 @@
+import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_service/background/audio-state-base.dart';
+
+// TODO: The control buttons should be configurable.
+
+const playControl = MediaControl(
+  androidIcon: 'drawable/ic_action_play_arrow',
+  label: 'Play',
+  action: MediaAction.play,
+);
+
+const pauseControl = MediaControl(
+  androidIcon: 'drawable/ic_action_pause',
+  label: 'Pause',
+  action: MediaAction.pause,
+);
+
+/// just_audio_plugin implements the state pattern.
+/// There is one class, [AudioContext] which serves as the center point to the
+/// changing states, and several state classes inherited from [MediaStateBase]
+/// which define and handle audio events and commands appropriately in
+/// accordance to the state which they are designed to handle.
+
+/// Audio settings which effect all audio.
+class GeneralPlaybackSettings {
+  /// The current speed.
+  final double speed;
+
+  /// The current volume.
+  final double volume;
+
+  GeneralPlaybackSettings({this.speed, this.volume});
+
+  GeneralPlaybackSettings copyWith({double speed, double volume}) =>
+      GeneralPlaybackSettings(
+          speed: speed ?? this.speed, volume: volume ?? this.volume);
+}
+
+/// Audio state information which isn't usable now, but will be used when
+/// possible. After it is used, it should be set to null.
+///
+/// For example, when no audio is loaded we can't seek, but we can set that
+/// when we can seek, go to a certain position.
+class UpcomingPlaybackSettings {
+  final Duration position;
+
+  UpcomingPlaybackSettings({@required this.position});
+}
+
+/// Functionality which the [MediaStateBase] classes will use to mantain state.
+abstract class AudioContextBase {
+  final AudioPlayer mediaPlayer;
+
+  MediaStateBase stateHandler;
+
+  AudioContextBase({@required this.mediaPlayer});
+
+  /// Get current media item.
+  MediaItem get mediaItem;
+
+  /// Set current media item.
+  set mediaItem(MediaItem item);
+
+  /// Get the current playback state.
+  PlaybackState get playBackState;
+
+  /// Set the current playback state.
+  set playBackState(PlaybackState playbackState);
+
+  GeneralPlaybackSettings get generalPlaybackSettings;
+  set generalPlaybackSettings(GeneralPlaybackSettings generalPlaybackSettings);
+
+  UpcomingPlaybackSettings get upcomingPlaybackSettings;
+  set upcomingPlaybackSettings(
+      UpcomingPlaybackSettings upcomingPlaybackSettings);
+}
+
+class AudioContext extends AudioContextBase {
+  MediaItem _mediaItem;
+  PlaybackState _playbackState;
+
+  AudioContext() : super(mediaPlayer: AudioPlayer());
+
+  @override
+  GeneralPlaybackSettings generalPlaybackSettings;
+
+  @override
+  MediaItem get mediaItem => _mediaItem;
+  @override
+  set mediaItem(MediaItem item) {
+    AudioServiceBackground.setMediaItem(item);
+    _mediaItem = item;
+  }
+
+  @override
+  PlaybackState get playBackState => _playbackState;
+  @override
+  set playBackState(PlaybackState state) {
+    AudioServiceBackground.setState(
+        controls: state.basicState == BasicPlaybackState.paused
+            ? [playControl]
+            : [pauseControl],
+        systemActions: state.actions.toList(),
+        basicState: state.basicState,
+        position: state.position,
+        speed: state.speed,
+        updateTime: state.updateTime);
+  }
+
+  @override
+  UpcomingPlaybackSettings upcomingPlaybackSettings;
+}
