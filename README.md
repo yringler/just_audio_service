@@ -1,14 +1,6 @@
 # just_audio_service
 
-A new Flutter package project.
-
-## Getting Started
-
-This project is a starting point for a Dart
-[package](https://flutter.dev/developing-packages/),
-a library module containing code that can be shared easily across
-multiple Flutter or Dart projects.
-
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.dev/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.
+In early stages of development.
+Intended to be a robust, well written, easy to use implementation of audio_service using just_audio.
+Note that initial goal is only to support a limited set of requirements, not to be properly configurable.
+That being said, I hope that it is a good starting point for others to base their implementations off.
