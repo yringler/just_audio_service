@@ -40,6 +40,15 @@ class ConnectingState extends MediaStateBase {
               (event) => event == AudioPlaybackState.stopped && !isSettingUrl)
           .timeout(Duration(seconds: 5),
               onTimeout: () => AudioPlaybackState.stopped);
+
+      // If URL is called multiple times with same value, ignore.
+      if (url == context.mediaItem.id) {
+        return;
+      } else {
+        // Possibly, by the time we get here, audio is playing and playing state handler is
+        // under control. So take that back.
+        context.stateHandler = this;
+      }
     }
 
     super.reactToStream = false;
