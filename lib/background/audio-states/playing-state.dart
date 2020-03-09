@@ -1,20 +1,29 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/audio-state-base.dart';
+import 'package:just_audio_service/playback-state-extensions.dart';
 
 class PlayingState extends MediaStateBase {
   PlayingState({@required AudioContext context}) : super(context: context);
 
   @override
   Future<void> pause() {
-    // TODO: implement pause
-    return null;
+    return context.mediaPlayer.pause();
   }
 
   @override
   Future<void> seek(Duration position) {
-    // TODO: implement seek
-    return null;
+    super.reactToStream = false;
+
+    final basicState =
+        position.inMilliseconds > context.playBackState.currentPosition
+            ? BasicPlaybackState.fastForwarding
+            : BasicPlaybackState.rewinding;
+
+    setMediaState(state: basicState, position: position);
+
+    super.reactToStream = true;
   }
 
   @override
@@ -40,5 +49,4 @@ class PlayingState extends MediaStateBase {
     // TODO: implement setUrl
     return null;
   }
-
 }

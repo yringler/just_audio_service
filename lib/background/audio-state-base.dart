@@ -44,6 +44,9 @@ abstract class MediaStateBase {
 
   MediaStateBase({this.context});
 
+  /// Called by [AudioContext] whenever [AudioPlayer] raises an event.
+  /// Uses [reactToStream] to ignore events if a particular [MediaStateBase] doesn't
+  /// want that event to be handled for whatever reason.
   void onPlaybackEvent(AudioPlaybackEvent event) {
     if (reactToStream) {
       context.playBackState = PlaybackState(
@@ -89,6 +92,7 @@ abstract class MediaStateBase {
         basicState: state,
         actions: MediaStateBase.stateToActionsMap[state],
         position: position.inMilliseconds,
+        updateTime: DateTime.now().millisecondsSinceEpoch,
         speed: context.generalPlaybackSettings.speed);
   }
 
