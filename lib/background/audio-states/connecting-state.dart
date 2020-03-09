@@ -25,7 +25,7 @@ class ConnectingState extends MediaStateBase {
   Future<void> play() async {
     if (isSettingUrl) {
       didRequestPlayWhileLoading = true;
-    } else {
+    } else if (context.mediaItem != null){
       context.stateHandler = PlayingState(context: context);
       await context.stateHandler.play();
     }

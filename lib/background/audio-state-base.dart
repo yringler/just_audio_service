@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_service/background/audio-context.dart';
+import 'package:just_audio_service/background/audio-states/stopped-state.dart';
 
 /// Deals with state for a given state.
 abstract class MediaStateBase {
@@ -55,6 +56,13 @@ abstract class MediaStateBase {
           position: event.position.inMilliseconds,
           updateTime: event.updateTime.inMilliseconds,
           speed: event.speed);
+
+      if (event.state == AudioPlaybackState.completed) {
+        context.stateHandler = StoppedState(context: context);
+        setMediaState(
+            state: BasicPlaybackState.stopped,
+            position: Duration(milliseconds: context.mediaItem.duration));
+      }
     }
   }
 
