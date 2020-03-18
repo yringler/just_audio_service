@@ -52,7 +52,7 @@ abstract class MediaStateBase {
     if (reactToStream) {
       context.playBackState = PlaybackState(
           basicState: stateToStateMap[event.state],
-          actions: null,
+          actions: stateToActionsMap[event.state],
           position: event.position.inMilliseconds,
           updateTime: event.updateTime.inMilliseconds,
           speed: event.speed);
@@ -61,7 +61,7 @@ abstract class MediaStateBase {
         context.stateHandler = StoppedState(context: context);
         setMediaState(
             state: BasicPlaybackState.stopped,
-            position: Duration(milliseconds: context.mediaItem.duration));
+            position: Duration.zero);
       }
     }
   }

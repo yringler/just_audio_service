@@ -6,8 +6,9 @@ import 'package:just_audio_service/background/audio-state-base.dart';
 import 'package:just_audio_service/background/audio-states/playing-state.dart';
 
 class ConnectingState extends MediaStateBase {
-  bool isSettingUrl = false;
   bool didRequestPlayWhileLoading;
+
+  bool get isSettingUrl => reactToStream;
 
   ConnectingState({@required AudioContext context}) : super(context: context);
 
@@ -46,7 +47,6 @@ class ConnectingState extends MediaStateBase {
     context.mediaItem = safeMediaItem.copyWith(id: url);
     super.setMediaState(state: BasicPlaybackState.connecting);
 
-    isSettingUrl = true;
     final duration = await context.mediaPlayer.setUrl(url);
 
     // If we switched to something else while this file was loading,
@@ -54,8 +54,6 @@ class ConnectingState extends MediaStateBase {
     if (url != context.mediaItem.id) {
       return;
     }
-
-    isSettingUrl = false;
 
     // Notify length of media.
     context.mediaItem =
@@ -70,7 +68,7 @@ class ConnectingState extends MediaStateBase {
 
     // Play media if play was requested while loading.
     if (didRequestPlayWhileLoading) {
-      play();
+      await play();
     }
   }
 }
