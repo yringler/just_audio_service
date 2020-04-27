@@ -10,8 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  audio_service: ^0.6.2
-  just_audio: ^0.1.0
+  audio_service: ^0.7.2
+  just_audio: ^0.1.7
   
 dev_dependencies:
   flutter_test:
