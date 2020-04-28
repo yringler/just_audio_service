@@ -5,11 +5,11 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_service/background/audio-context.dart';
 
 class AudioTask extends BackgroundAudioTask {
-  final AudioContext _context = AudioContext();
+  final AudioContext context = AudioContext();
   final Completer _completer = Completer();
 
   Future<void> onStart() async {
-    _context.mediaPlayer.playbackStateStream
+    context.mediaPlayer.playbackStateStream
         .where((state) => state == AudioPlaybackState.completed)
         .listen((_) => _dispose());
 
@@ -19,40 +19,40 @@ class AudioTask extends BackgroundAudioTask {
   @override
   void onStop() => _stop();
   void _stop() async {
-    await _context.stateHandler.stop();
+    await context.stateHandler.stop();
     await _dispose();
   }
 
   @override
-  void onPause() => _context.stateHandler.pause();
+  void onPause() => context.stateHandler.pause();
 
   @override
-  void onPlay() => _context.stateHandler.play();
+  void onPlay() => context.stateHandler.play();
 
   @override
   void onPlayFromMediaId(String mediaId) => _onPlayFromMediaId(mediaId);
   void _onPlayFromMediaId(String mediaId) async {
-    final future = _context.stateHandler.setUrl(mediaId);
-    _context.stateHandler.play();
+    final future = context.stateHandler.setUrl(mediaId);
+    context.stateHandler.play();
     await future;
   }
   
   @override
-  void onFastForward() => onSeekTo((_context.playBackState?.currentPosition ?? 0) + 15 * Duration.millisecondsPerSecond);
+  void onFastForward() => onSeekTo((context.playBackState?.currentPosition ?? 0) + 15 * Duration.millisecondsPerSecond);
 
   @override
-  void onRewind() => onSeekTo((_context.playBackState?.currentPosition ?? 0) - 15 * Duration.millisecondsPerSecond);
+  void onRewind() => onSeekTo((context.playBackState?.currentPosition ?? 0) - 15 * Duration.millisecondsPerSecond);
 
   @override
   void onSeekTo(int position) {
-    _context.stateHandler.seek(Duration(milliseconds: position));
+    context.stateHandler.seek(Duration(milliseconds: position));
   }
 
   @override
   void onCustomAction(String name, dynamic arguments) {}
 
   Future<void> _dispose() async {
-    await _context.mediaPlayer.dispose();
+    await context.mediaPlayer.dispose();
     _completer.complete();
   }
 
