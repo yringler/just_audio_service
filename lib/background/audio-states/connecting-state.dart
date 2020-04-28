@@ -5,11 +5,6 @@ import 'package:just_audio_service/background/audio-state-base.dart';
 import 'package:just_audio_service/background/audio-states/playing-state.dart';
 
 class ConnectingState extends MediaStateBase {
-  /// True if user called play while a connection was being made.
-  /// If that is done, playback will start as soon as connection to audio
-  /// has been established.
-  bool didRequestPlayWhileLoading;
-
   ConnectingState({@required AudioContext context}) : super(context: context);
 
   @override
@@ -24,25 +19,34 @@ class ConnectingState extends MediaStateBase {
 
   @override
   Future<void> play() async {
-    // Creation of a connecting-state is always followed by a call to setUrl
-    // (the connection); that's the only reason to create this.
-    // setUrl sets the context media item to null; if its not null, it must be that
-    // we loaded the media successfully, and a call to play should transition to the play
-    // state.
-    if (context.mediaItem != null){
+    // Transition to play state and play if media was already loaded.
+    // Otherwise, schedule a play to happen when loading finishes.
+
+    // Make sure that the media we want to play has been loaded.
+
+    // Creation of a connecting-state is always followed by a call to setUrl, which
+    // sets the context media item to null. If its not null, it must be that
+    // the media was already loaded successfully.
+    if (context.mediaItem == null) {
+      await context.mediaStateStream.firstWhere(
+          (state) => state.basicState == BasicPlaybackState.stopped);
+    }
+
+    assert(context.mediaItem != null,
+        'It shouldn\'t be possible for media to be null.');
+
+    if (context.mediaItem != null) {
       context.stateHandler = PlayingState(context: context);
       await context.stateHandler.play();
-    } else {
-      didRequestPlayWhileLoading = true;
     }
   }
 
   @override
   Future<void> setUrl(String url) async {
-      // If URL is called multiple times with same value, ignore.
-      if (url == context.mediaItem.id) {
-        return;
-      }
+    // If URL is called multiple times with same value, ignore.
+    if (url == context.mediaItem.id) {
+      return;
+    }
 
     super.reactToStream = false;
 
@@ -67,10 +71,5 @@ class ConnectingState extends MediaStateBase {
     super.setMediaState(state: BasicPlaybackState.stopped);
 
     super.reactToStream = true;
-
-    // Play media if play was requested while loading.
-    if (didRequestPlayWhileLoading) {
-      await play();
-    }
   }
 }
