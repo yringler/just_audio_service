@@ -18,6 +18,12 @@ const pauseControl = MediaControl(
   action: MediaAction.pause,
 );
 
+const stopControl = MediaControl(
+  androidIcon: 'drawable/ic_action_stop',
+  label: 'Stop',
+  action: MediaAction.stop,
+);
+
 /// just_audio_plugin implements the state pattern.
 /// There is one class, [AudioContext] which serves as the center point to the
 /// changing states, and several state classes inherited from [MediaStateBase]
