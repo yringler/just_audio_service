@@ -158,7 +158,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             androidNotificationChannelName: 'Audio Service Demo',
             notificationColor: 0xFF2196f3,
             androidNotificationIcon: 'mipmap/ic_launcher',
-          );
+          ).then((_) => AudioService.playFromMediaId(
+              "https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3"));
         },
       );
 
