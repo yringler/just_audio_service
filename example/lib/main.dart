@@ -1,3 +1,7 @@
+/*
+ * This code is pretty much streight from Ryan Heise's audio_service example, with
+ * very minor changes to use just_audio_service as the background task.
+ */
 import 'dart:math';
 
 import 'package:flutter/material.dart';
