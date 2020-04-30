@@ -8,7 +8,10 @@ class AudioTask extends BackgroundAudioTask {
   final AudioContext context = AudioContext();
   final Completer _completer = Completer();
 
+  @override
   Future<void> onStart() async {
+    // This will be changed when we support playlists.
+    // Then, on media completion we'll check if there's another file to play.
     context.mediaPlayer.playbackStateStream
         .where((state) => state == AudioPlaybackState.completed)
         .listen((_) => _dispose());
