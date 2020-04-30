@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_service/background/audio-state-base.dart';
+import 'package:just_audio_service/background/audio-states/none-state.dart';
 import 'package:rxdart/rxdart.dart';
 
 // TODO: The control buttons should be configurable.
@@ -62,7 +63,9 @@ abstract class AudioContextBase {
 
   MediaStateBase stateHandler;
 
-  AudioContextBase({@required this.mediaPlayer});
+  AudioContextBase({@required this.mediaPlayer}) {
+    stateHandler = NoneState(context: this);
+  }
 
   Stream<PlaybackState> get mediaStateStream;
 
@@ -88,7 +91,6 @@ abstract class AudioContextBase {
 
 class AudioContext extends AudioContextBase {
   MediaItem _mediaItem;
-  PlaybackState _playbackState;
   BehaviorSubject<PlaybackState> _mediaStateSubject = BehaviorSubject();
 
   AudioContext() : super(mediaPlayer: AudioPlayer());
@@ -105,14 +107,14 @@ class AudioContext extends AudioContextBase {
   }
 
   @override
-  PlaybackState get playBackState => _playbackState;
+  PlaybackState get playBackState => _mediaStateSubject.value;
   @override
   set playBackState(PlaybackState state) {
     AudioServiceBackground.setState(
         controls: state.basicState == BasicPlaybackState.paused
             ? [playControl]
             : [pauseControl],
-        systemActions: state.actions.toList(),
+        systemActions: state.actions?.toList() ?? List(),
         basicState: state.basicState,
         position: state.position,
         speed: state.speed,

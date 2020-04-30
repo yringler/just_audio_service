@@ -60,8 +60,7 @@ abstract class MediaStateBase {
       if (event.state == AudioPlaybackState.completed) {
         context.stateHandler = StoppedState(context: context);
         setMediaState(
-            state: BasicPlaybackState.stopped,
-            position: Duration.zero);
+            state: BasicPlaybackState.stopped, position: Duration.zero);
       }
     }
   }
@@ -81,17 +80,6 @@ abstract class MediaStateBase {
       context.generalPlaybackSettings?.copyWith(speed: speed) ??
           GeneralPlaybackSettings(speed: speed);
 
-  /// Set the audio service state to a null, default state.
-  void setNullState() {
-    context.mediaItem = null;
-    context.playBackState =
-        PlaybackState(basicState: BasicPlaybackState.none, actions: null);
-  }
-
-  /// Returns the current [MediaItem] from [AudioContextBase.context], or a default value if null.
-  MediaItem get safeMediaItem =>
-      context.mediaItem ?? MediaItem(id: "", album: "lessons", title: "lesson");
-
   void setMediaState({@required BasicPlaybackState state, Duration position}) {
     position ??= context.upcomingPlaybackSettings?.position?.inMilliseconds ??
         Duration.zero;
@@ -101,7 +89,7 @@ abstract class MediaStateBase {
         actions: MediaStateBase.stateToActionsMap[state],
         position: position.inMilliseconds,
         updateTime: DateTime.now().millisecondsSinceEpoch,
-        speed: context.generalPlaybackSettings.speed);
+        speed: context.generalPlaybackSettings?.speed ?? 1);
   }
 
   /// Set the [UpcomingPlaybackSettings.position] of [AudioContextBase.upcomingPlaybackSettings] to the given position.
