@@ -36,7 +36,9 @@ class PlayingState extends MediaStateBase {
       position = Duration.zero;
     }
 
-    _doneSeeking = Completer();
+    if (_doneSeeking.isCompleted) {
+      _doneSeeking = Completer();
+    }
 
     final basicState =
         position.inMilliseconds > context.playBackState.currentPosition
