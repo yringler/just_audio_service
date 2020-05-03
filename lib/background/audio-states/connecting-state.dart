@@ -48,9 +48,11 @@ class ConnectingState extends MediaStateBase {
     // apply to which media.
     // (On startup, before anything happens, AudioService has a none state, and context.playBackState is null
     // because it gets its value when only when this plugin code sets it.)
-    if (context.playBackState != null && context.playBackState.basicState != BasicPlaybackState.none) {
-      setMediaState(state: BasicPlaybackState.none);
-    }
+
+    // Commenting out - this probably isn't neccesary...
+    // if (context.playBackState != null && context.playBackState.basicState != BasicPlaybackState.none) {
+    //   setMediaState(state: BasicPlaybackState.none);
+    // }
 
     // Notify that connecting to media.
     context.mediaItem = MediaItem(id: url, album: "lessons", title: "lesson");
