@@ -65,6 +65,8 @@ abstract class AudioContextBase {
 
   AudioContextBase({@required this.mediaPlayer}) {
     stateHandler = NoneState(context: this);
+
+    mediaPlayer.playbackEventStream.listen(stateHandler.onPlaybackEvent);
   }
 
   Stream<PlaybackState> get mediaStateStream;
@@ -120,11 +122,12 @@ class AudioContext extends AudioContextBase {
         speed: state.speed,
         updateTime: state.updateTime);
 
-      _mediaStateSubject.value = state;
+    _mediaStateSubject.value = state;
   }
 
   @override
-  Stream<PlaybackState> get mediaStateStream => _mediaStateSubject.asBroadcastStream();
+  Stream<PlaybackState> get mediaStateStream =>
+      _mediaStateSubject.asBroadcastStream();
 
   @override
   UpcomingPlaybackSettings upcomingPlaybackSettings;

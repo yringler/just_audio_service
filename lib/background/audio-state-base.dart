@@ -41,7 +41,7 @@ abstract class MediaStateBase {
   final AudioContextBase context;
 
   /// Whether media player state streams should be ignored.
-  bool reactToStream;
+  bool reactToStream = true;
 
   MediaStateBase({this.context});
 

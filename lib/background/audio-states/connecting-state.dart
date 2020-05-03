@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/audio-state-base.dart';
 import 'package:just_audio_service/background/audio-states/playing-state.dart';
-import 'package:just_audio_service/util/audioplayer-extensions.dart';
 
 class ConnectingState extends MediaStateBase {
+  Completer<void> _completer = Completer();
+
   ConnectingState({@required AudioContext context}) : super(context: context);
 
   @override
@@ -20,16 +23,7 @@ class ConnectingState extends MediaStateBase {
 
   @override
   Future<void> play() async {
-    // Transition to play state and play if media was already loaded.
-    // Otherwise, schedule a play to happen when loading finishes.
-
-    assert(context.mediaItem != null,
-        'It shouldn\'t be possible for media to be null.');
-
-    if (!context.mediaPlayer.canPlay) {
-      await context.mediaPlayer.playbackStateStream
-          .firstWhere((state) => state.canPlay);
-    }
+    await _completer.future;
 
     context.stateHandler = PlayingState(context: context);
     await context.stateHandler.play();
@@ -43,6 +37,10 @@ class ConnectingState extends MediaStateBase {
     }
 
     super.reactToStream = false;
+
+    if (_completer.isCompleted) {
+      _completer = Completer();
+    }
 
     // Set state to none in between media items, to give a clear indication of what state events
     // apply to which media.
@@ -73,5 +71,7 @@ class ConnectingState extends MediaStateBase {
     super.setMediaState(state: BasicPlaybackState.stopped);
 
     super.reactToStream = true;
+
+    _completer.complete();
   }
 }

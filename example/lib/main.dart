@@ -72,42 +72,20 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           ),
           body: new Center(
             child: StreamBuilder<ScreenState>(
-              stream: Rx.combineLatest3<List<MediaItem>, MediaItem,
+              stream: Rx.combineLatest2<MediaItem,
                       PlaybackState, ScreenState>(
-                  AudioService.queueStream,
                   AudioService.currentMediaItemStream,
                   AudioService.playbackStateStream,
-                  (queue, mediaItem, playbackState) =>
-                      ScreenState(queue, mediaItem, playbackState)),
+                  (mediaItem, playbackState) =>
+                      ScreenState(mediaItem, playbackState)),
               builder: (context, snapshot) {
                 final screenState = snapshot.data;
-                final queue = screenState?.queue;
                 final mediaItem = screenState?.mediaItem;
                 final state = screenState?.playbackState;
                 final basicState = state?.basicState ?? BasicPlaybackState.none;
                 return Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (queue != null && queue.isNotEmpty)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.skip_previous),
-                            iconSize: 64.0,
-                            onPressed: mediaItem == queue.first
-                                ? null
-                                : AudioService.skipToPrevious,
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.skip_next),
-                            iconSize: 64.0,
-                            onPressed: mediaItem == queue.last
-                                ? null
-                                : AudioService.skipToNext,
-                          ),
-                        ],
-                      ),
                     if (mediaItem?.title != null) Text(mediaItem.title),
                     if (basicState == BasicPlaybackState.none) ...[
                       audioPlayerButton(),
@@ -189,7 +167,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     double seekPos;
     return StreamBuilder(
       stream: Rx.combineLatest2<double, double, double>(
-          _dragPositionSubject.stream,
+          _dragPositionSubject.stream, 
           Stream.periodic(Duration(milliseconds: 200)),
           (dragPosition, _) => dragPosition),
       builder: (context, snapshot) {
@@ -226,11 +204,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 }
 
 class ScreenState {
-  final List<MediaItem> queue;
   final MediaItem mediaItem;
   final PlaybackState playbackState;
 
-  ScreenState(this.queue, this.mediaItem, this.playbackState);
+  ScreenState(this.mediaItem, this.playbackState);
 }
 
 void _audioPlayerTaskEntrypoint() async {
