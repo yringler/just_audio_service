@@ -38,6 +38,7 @@ class ConnectingState extends MediaStateBase {
 
     super.reactToStream = false;
 
+    // In case we connect to diffirent media items, without playing in the middle.
     if (_completer.isCompleted) {
       _completer = Completer();
     }
