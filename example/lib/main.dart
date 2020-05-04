@@ -141,7 +141,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             notificationColor: 0xFF2196f3,
             androidNotificationIcon: 'mipmap/ic_launcher',
           ).then((_) => AudioService.playFromMediaId(
-              "https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3"));
+              "https://insidechassidus.org/wp-content/uploads/classes/Life Lessons/Avoda/simcha_MM_2007_64bit.mp3"));
         },
       );
 
