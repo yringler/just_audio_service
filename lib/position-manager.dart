@@ -6,7 +6,7 @@ class PositionManager {
   final BehaviorSubject<Duration> _seekingValues = BehaviorSubject.seeded(null);
   final BehaviorSubject<Duration> _positionSubject = BehaviorSubject.seeded(Duration.zero);
 
-  Future<void> init() async {
+  void init() {
     Rx.combineLatest3<PlaybackState, dynamic, Duration, Duration>(
             AudioService.playbackStateStream
                 .where((state) => state?.basicState != BasicPlaybackState.none),
@@ -24,16 +24,16 @@ class PositionManager {
   }
 
   /// Updates the current location in given media.
-  seek(Duration location) {
+  void seek(Duration location) {
     _seekingValues.add(location);
   }
 
-  skip(Duration duration) async {
+  void skip(Duration duration) {
     final currentLocation = _positionSubject.value;
     seek(currentLocation + duration);
   }
 
-  dispose() {
+  void dispose() {
     _seekingValues.close();
     _positionSubject.close();
   }
