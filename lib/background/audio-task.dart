@@ -39,12 +39,15 @@ class AudioTask extends BackgroundAudioTask {
     context.stateHandler.play();
     await future;
   }
-  
-  @override
-  void onFastForward() => onSeekTo((context.playBackState?.currentPosition ?? 0) + 15 * Duration.millisecondsPerSecond);
 
   @override
-  void onRewind() => onSeekTo((context.playBackState?.currentPosition ?? 0) - 15 * Duration.millisecondsPerSecond);
+  void onFastForward() =>
+      onSeekTo((context.playBackState?.currentPosition ?? 0) +
+          15 * Duration.millisecondsPerSecond);
+
+  @override
+  void onRewind() => onSeekTo((context.playBackState?.currentPosition ?? 0) -
+      15 * Duration.millisecondsPerSecond);
 
   @override
   void onSeekTo(int position) {

@@ -1,12 +1,16 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:just_audio_service/position-manager/positioned-audio-task.dart';
 import 'package:rxdart/rxdart.dart';
 
+/// Simplifies knowlage of current position (no more lag after a seek).
+/// Interacts with a [BackgroundAudioTask] (such as [PositionedAudioTask]) to get last
+/// held position of a media.
 class PositionManager {
   // Ensure that seeks don't happen to frequently.
   final BehaviorSubject<Duration> _seekingValues = BehaviorSubject.seeded(null);
   final BehaviorSubject<Duration> _positionSubject = BehaviorSubject.seeded(Duration.zero);
 
-  void init() {
+  PositionManager() {
     Rx.combineLatest3<PlaybackState, dynamic, Duration, Duration>(
             AudioService.playbackStateStream
                 .where((state) => state?.basicState != BasicPlaybackState.none),
@@ -22,6 +26,10 @@ class PositionManager {
         .listen((position) => AudioService.seekTo(
             position.inMilliseconds < 0 ? 0 : position.inMilliseconds));
   }
+
+  Stream<Duration> get positionStream => _positionSubject.stream;
+
+  Duration get currentPosition => _positionSubject.value;
 
   /// Updates the current location in given media.
   void seek(Duration location) {
