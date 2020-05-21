@@ -1,7 +1,7 @@
 # just_audio_service
 
-In development.<br>
-There is currently a working example project!<br>
+In development, but there is currently a working example project!<br>
+<br>
 Intended to be a robust, well written, easy to use implementation of audio_service using just_audio.<br>
 It also has a background audio task which supports saving current position in a media file, and accessing that from
 either background or UI thread.<br>
