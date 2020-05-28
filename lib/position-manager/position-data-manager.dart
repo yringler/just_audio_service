@@ -13,7 +13,7 @@ abstract class IPositionDataManager {
 
   Future<List<Position>> getPositions(List<String> ids);
 
-  Future<void> setPosition(String id, Duration position);
+  Future<void> setPosition(Position position);
 }
 
 /// Wrapper around the two position manager implementations.
@@ -42,8 +42,8 @@ class PositionDataManager implements IPositionDataManager {
       _activeManager.getPositions(ids);
 
   @override
-  Future<void> setPosition(String id, Duration position) =>
-      _activeManager.setPosition(id, position);
+  Future<void> setPosition(Position position) =>
+      _activeManager.setPosition(position);
 }
 
 /// Saves position to disk.
@@ -86,9 +86,9 @@ class HivePositionDataManager implements IPositionDataManager {
     return ids.map((id) => positionBox.get(id)).toList();
   }
 
-  Future<void> setPosition(String id, Duration position) async {
+  Future<void> setPosition(Position position) async {
     await openStorage();
-    await positionBox.put(id, Position(position: position));
+    await positionBox.put(position.id, position);
   }
 
   /// Make sure we don't try to hold too many positions in memory.
@@ -140,7 +140,7 @@ class AudioServicePositionManager implements IPositionDataManager {
   }
 
   @override
-  Future<void> setPosition(String id, Duration position) async {
+  Future<void> setPosition(Position position) async {
     final sendPort =
         IsolateNameServer.lookupPortByName(PositionedAudioTask.SendPortID);
 
@@ -149,7 +149,7 @@ class AudioServicePositionManager implements IPositionDataManager {
     }
 
     final receivePort = ReceivePort();
-    sendPort.send([receivePort.sendPort, id, position.inMilliseconds]);
+    sendPort.send([receivePort.sendPort, position.id, position.position.inMilliseconds]);
     await receivePort.first;
   }
 }
