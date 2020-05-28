@@ -22,11 +22,9 @@ class PositionedAudioTask extends AudioTaskDecorater {
   Future<void> onStart() async {
     await dataManager.openStorage();
     _receivePort = ReceivePort();
-    if (!IsolateNameServer.registerPortWithName(
-        _receivePort.sendPort, SendPortID)) {
-      IsolateNameServer.removePortNameMapping(SendPortID);
-      IsolateNameServer.registerPortWithName(_receivePort.sendPort, SendPortID);
-    }
+
+    IsolateNameServer.removePortNameMapping(SendPortID);
+    IsolateNameServer.registerPortWithName(_receivePort.sendPort, SendPortID);
 
     _receivePort.listen(_answerPortMessage);
 
