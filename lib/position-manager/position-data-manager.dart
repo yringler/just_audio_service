@@ -113,22 +113,7 @@ class HivePositionDataManager implements IPositionDataManager {
 /// Saves and retrieves position by interacting with the background audio task isolate.
 class AudioServicePositionManager implements IPositionDataManager {
   @override
-  Future<Duration> getPosition(String id) async {
-    final sendPort =
-        IsolateNameServer.lookupPortByName(PositionedAudioTask.SendPortID);
-
-    if (sendPort == null) {
-      return null;
-    }
-
-    final receivePort = ReceivePort();
-    sendPort.send([receivePort.sendPort, id]);
-
-    final positionMilliseconds = await receivePort.first;
-    receivePort.close();
-
-    return Duration(milliseconds: positionMilliseconds);
-  }
+  Future<Duration> getPosition(String id) async => (await getPositions([id])).first.position;
 
   @override
   Future<List<Position>> getPositions(List<String> ids) async {
