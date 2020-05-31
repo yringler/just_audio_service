@@ -92,8 +92,22 @@ class HivePositionDataManager implements IPositionDataManager {
   }
 
   /// Make sure we don't try to hold too many positions in memory.
-  /// TODO: Implement
-  Future<void> _constrainBoxSize() async {}
+  Future<void> _constrainBoxSize() async {
+    int amountPositionsToDelete = positionBox.length - maxSavedPositions;
+
+    if (amountPositionsToDelete < 1) {
+      return;
+    }
+
+    final positions = positionBox.values.toList();
+    positions.sort((p1, p2) =>
+        p2.createdDate.millisecondsSinceEpoch -
+        p1.createdDate.millisecondsSinceEpoch);
+    final positionsToDelete = positions.take(amountPositionsToDelete);
+
+    await Stream.fromFutures(
+        positionsToDelete.map((position) => position.delete())).last;
+  }
 }
 
 /// Saves and retrieves position by interacting with the background audio task isolate.
@@ -149,7 +163,8 @@ class AudioServicePositionManager implements IPositionDataManager {
     }
 
     final receivePort = ReceivePort();
-    sendPort.send([receivePort.sendPort, position.id, position.position.inMilliseconds]);
+    sendPort.send(
+        [receivePort.sendPort, position.id, position.position.inMilliseconds]);
     await receivePort.first;
   }
 }

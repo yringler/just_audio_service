@@ -31,8 +31,11 @@ class PositionedAudioTask extends AudioTaskDecorater {
     await baseTask.onStart();
     IsolateNameServer.removePortNameMapping(SendPortID);
     _receivePort.close();
+    await dataManager.closeStorage();
   }
 
   // TODO: Implement
-  void _answerPortMessage(message) {}
+  void _answerPortMessage(List<dynamic> message) {
+    
+  }
 }
