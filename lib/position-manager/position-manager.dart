@@ -10,7 +10,7 @@ import 'package:rxdart/rxdart.dart';
 /// held position of a media.
 class PositionManager {
   /// How often the position stream is updated from audio_service.
-  /// Note that when seeking (eg, draggin a position slider), the "position" is updated constantly.
+  /// Note that when seeking (eg, dragging a position slider), the "position" is updated constantly.
   static const positionUpdateTime = Duration(milliseconds: 50);
 
   // Ensure that seeks don't happen to frequently.
@@ -32,7 +32,7 @@ class PositionManager {
                 BasicPlaybackState.none),
             Stream.periodic(positionUpdateTime),
             (state, _) => state)
-        .where((_) => isAudioServiceEventRelevant())
+        .where((_) => _isAudioServiceEventRelevant())
         .listen((state) => _positionSubject.value = Position(
             id: AudioService.currentMediaItem.id,
             position: Duration(milliseconds: state.currentPosition)));
@@ -49,29 +49,8 @@ class PositionManager {
     });
   }
 
-  // An event from audio_service is only relevant if we aren't in the middle of seeking.
-  bool isAudioServiceEventRelevant() {
-    if (_ignoreAudioServiceUntil == null) {
-      return true;
-    }
-
-    if (_ignoreAudioServiceUntil.isBefore(DateTime.now())) {
-      return false;
-    }
-
-    // After the time to ignore audio_service events has passed, set ignore time to null.
-    // This whole is more verbose then just checking against current time, but avoids constantly checking
-    // the current time. This may or may not be a case of premature optimization.
-
-    _ignoreAudioServiceUntil = null;
-
-    return true;
-  }
-
   /// Stream of media position, not only of current media.
-  Stream<Duration> get positionStream => _positionSubject.stream
-      .where((event) => event.id == AudioService.currentMediaItem?.id)
-      .map((event) => event.position);
+  Stream<Position> get positionStream => _positionSubject.stream;
 
   /// Updates the current location in given media, for the given ID. If ID is ommited,
   /// will effect current media.
@@ -107,5 +86,24 @@ class PositionManager {
     } else if (positionDataManager != null) {
       positionDataManager.setPosition(event);
     }
+  }
+
+  // An event from audio_service is only relevant if we aren't in the middle of seeking.
+  bool _isAudioServiceEventRelevant() {
+    if (_ignoreAudioServiceUntil == null) {
+      return true;
+    }
+
+    if (_ignoreAudioServiceUntil.isBefore(DateTime.now())) {
+      return false;
+    }
+
+    // After the time to ignore audio_service events has passed, set ignore time to null.
+    // This whole is more verbose then just checking against current time, but avoids constantly checking
+    // the current time. This may or may not be a case of premature optimization.
+
+    _ignoreAudioServiceUntil = null;
+
+    return true;
   }
 }
