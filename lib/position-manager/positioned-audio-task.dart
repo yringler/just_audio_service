@@ -16,7 +16,6 @@ class PositionedAudioTask extends AudioTaskDecorater {
 
   final String storePath;
   final HivePositionDataManager dataManager;
-  ReceivePort _receivePort;
 
   PositionedAudioTask({BackgroundAudioTask audioTask, this.storePath})
       : this.dataManager = HivePositionDataManager(storePath: storePath),
@@ -25,7 +24,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
   @override
   Future<void> onStart() async {
     await dataManager.openStorage();
-    _receivePort = ReceivePort();
+    final _receivePort = ReceivePort();
 
     IsolateNameServer.removePortNameMapping(SendPortID);
     IsolateNameServer.registerPortWithName(_receivePort.sendPort, SendPortID);
@@ -38,12 +37,17 @@ class PositionedAudioTask extends AudioTaskDecorater {
     await dataManager.closeStorage();
   }
 
+  /// Send the correct response according to the message that we recieved from
+  /// the UI isolate.
+  /// The first item in the list will always be a [SendPort].
+  /// The second is the name of the command, for example [GetPositionsCommand].
   void _answerPortMessage(List<dynamic> message) async {
     final sendPort = message[0] as SendPort;
     final command = message[1] as String;
 
     switch (command) {
       case GetPositionsCommand:
+        /// The final arguments are the IDs to retrieve.
         final idsToGetPositionOf = (message[2] as List<dynamic>).cast<String>();
         final sendablePositions = (await dataManager
                 .getPositions(idsToGetPositionOf))
@@ -51,6 +55,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
         sendPort.send(sendablePositions);
         break;
       case SetPositionCommand:
+        /// The final arguments are the ID and position to set.
         final idToSet = message[2] as String;
         final position = Position(
             id: idToSet, position: Duration(milliseconds: message[3] as int));
