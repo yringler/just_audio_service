@@ -28,14 +28,14 @@ class PositionManager {
     // Make sure that we always keep up to date on audio_service media position.
     Rx.combineLatest2<PlaybackState, dynamic, PlaybackState>(
             AudioService.playbackStateStream.where((state) =>
-                (state?.basicState ?? BasicPlaybackState.none) !=
-                BasicPlaybackState.none),
+                (state?.processingState ?? AudioProcessingState.none) !=
+                AudioProcessingState.none),
             Stream.periodic(positionUpdateTime),
             (state, _) => state)
         .where((_) => _isAudioServiceEventRelevant())
         .listen((state) => _positionSubject.value = Position(
             id: AudioService.currentMediaItem.id,
-            position: Duration(milliseconds: state.currentPosition)));
+            position: state.currentPosition));
 
     // Seek, but not to often.
     _seekingValues
@@ -82,7 +82,7 @@ class PositionManager {
   /// playing yet media).
   void _realSeek(Position event) {
     if (event.id == null || event.id == AudioService.currentMediaItem?.id) {
-      AudioService.seekTo((event.position.inMilliseconds));
+      AudioService.seekTo((event.position));
     } else if (positionDataManager != null) {
       positionDataManager.setPosition(event);
     }

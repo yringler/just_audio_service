@@ -22,7 +22,7 @@ dependencies:
   
   just_audio_service:
     path: ../
-  audio_service: ^0.7.2
+  audio_service: ^0.9.0
 
 
 dev_dependencies:

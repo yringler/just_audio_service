@@ -9,7 +9,7 @@ class AudioTask extends BackgroundAudioTask {
   final Completer _completer = Completer();
 
   @override
-  Future<void> onStart() async {
+  Future<void> onStart(Map<String, dynamic> params) async {
     // This will be changed when we support playlists.
     // Then, on media completion we'll check if there's another file to play.
     context.mediaPlayer.playbackStateStream
@@ -42,34 +42,34 @@ class AudioTask extends BackgroundAudioTask {
 
   @override
   void onFastForward() =>
-      onSeekTo((context.playBackState?.currentPosition ?? 0) +
-          15 * Duration.millisecondsPerSecond);
+      onSeekTo((context.playBackState?.currentPosition ?? Duration.zero) +
+          Duration(seconds: 15));
 
   @override
-  void onRewind() => onSeekTo((context.playBackState?.currentPosition ?? 0) -
-      15 * Duration.millisecondsPerSecond);
+  void onRewind() =>
+      onSeekTo((context.playBackState?.currentPosition ?? Duration.zero) -
+          Duration(seconds: 15));
 
   @override
-  void onSeekTo(int position) {
-    context.stateHandler.seek(Duration(milliseconds: position));
+  void onSeekTo(Duration position) {
+    context.stateHandler.seek(position);
   }
 
   @override
-  void onCustomAction(String name, dynamic arguments) {}
+  Future<dynamic> onCustomAction(String name, dynamic arguments) async {}
 
   Future<void> _dispose() async {
     await context.mediaPlayer.dispose();
     _completer.complete();
   }
 
+    @override
+  void onSetSpeed(double speed) => context.stateHandler.setSpeed(speed);
+
   @override
-  void onAudioFocusGained() {}
+  void onAudioFocusGained(AudioInterruption interruption) {}
   @override
-  void onAudioFocusLost() {}
-  @override
-  void onAudioFocusLostTransient() {}
-  @override
-  void onAudioFocusLostTransientCanDuck() {}
+  void onAudioFocusLost(AudioInterruption interruption) {}
   @override
   void onAudioBecomingNoisy() {}
   @override

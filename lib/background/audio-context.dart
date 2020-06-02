@@ -65,7 +65,7 @@ abstract class AudioContextBase {
 
   AudioContextBase({@required this.mediaPlayer}) {
     stateHandler = NoneState(context: this);
-
+    
     mediaPlayer.playbackEventStream.listen(stateHandler.onPlaybackEvent);
   }
 
@@ -113,11 +113,13 @@ class AudioContext extends AudioContextBase {
   @override
   set playBackState(PlaybackState state) {
     AudioServiceBackground.setState(
-        controls: state.basicState == BasicPlaybackState.paused
+        controls: state.playing
             ? [playControl]
             : [pauseControl],
         systemActions: state.actions?.toList() ?? List(),
-        basicState: state.basicState,
+        playing: state.playing,
+        bufferedPosition: state.bufferedPosition,
+        processingState: state.processingState,
         position: state.position,
         speed: state.speed,
         updateTime: state.updateTime);

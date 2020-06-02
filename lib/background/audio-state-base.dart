@@ -7,12 +7,12 @@ import 'package:just_audio_service/background/audio-states/stopped-state.dart';
 /// Deals with state for a given state.
 abstract class MediaStateBase {
   static const stateToStateMap = {
-    AudioPlaybackState.connecting: BasicPlaybackState.connecting,
-    AudioPlaybackState.none: BasicPlaybackState.none,
-    AudioPlaybackState.paused: BasicPlaybackState.paused,
-    AudioPlaybackState.playing: BasicPlaybackState.playing,
-    AudioPlaybackState.completed: BasicPlaybackState.stopped,
-    AudioPlaybackState.stopped: BasicPlaybackState.stopped
+    AudioPlaybackState.connecting: AudioProcessingState.connecting,
+    AudioPlaybackState.none: AudioProcessingState.none,
+    AudioPlaybackState.paused: AudioProcessingState.ready,
+    AudioPlaybackState.playing: AudioProcessingState.ready,
+    AudioPlaybackState.completed: AudioProcessingState.completed,
+    AudioPlaybackState.stopped: AudioProcessingState.stopped
   };
 
   static const stateToActionsMap = {
@@ -51,17 +51,13 @@ abstract class MediaStateBase {
   void onPlaybackEvent(AudioPlaybackEvent event) {
     if (reactToStream) {
       context.playBackState = PlaybackState(
-          basicState: stateToStateMap[event.state],
+          processingState: stateToStateMap[event.state],
           actions: stateToActionsMap[event.state],
-          position: event.position.inMilliseconds,
-          updateTime: event.updateTime.inMilliseconds,
+          position: event.position,
+          updateTime: event.updateTime,
+          playing: event.state == AudioPlaybackState.playing,
+          bufferedPosition: event.bufferedPosition,
           speed: event.speed);
-
-      if (event.state == AudioPlaybackState.completed) {
-        context.stateHandler = StoppedState(context: context);
-        setMediaState(
-            state: BasicPlaybackState.stopped, position: Duration.zero);
-      }
     }
   }
 
@@ -80,16 +76,18 @@ abstract class MediaStateBase {
       context.generalPlaybackSettings?.copyWith(speed: speed) ??
           GeneralPlaybackSettings(speed: speed);
 
-  void setMediaState({@required BasicPlaybackState state, Duration position}) {
+  void setMediaState({@required AudioProcessingState state, Duration position}) {
     position ??= context.upcomingPlaybackSettings?.position?.inMilliseconds ??
         Duration.zero;
 
     context.playBackState = PlaybackState(
-        basicState: state,
+        processingState: state,
         actions: MediaStateBase.stateToActionsMap[state],
-        position: position.inMilliseconds,
-        updateTime: DateTime.now().millisecondsSinceEpoch,
-        speed: context.generalPlaybackSettings?.speed ?? 1);
+        position: position,
+        updateTime: Duration(milliseconds: DateTime.now().millisecondsSinceEpoch),
+        speed: context.generalPlaybackSettings?.speed ?? 1,
+        playing: context.mediaPlayer.playbackState == AudioPlaybackState.playing,
+        bufferedPosition: context.mediaPlayer.playbackEvent.bufferedPosition);
   }
 
   /// Set the [UpcomingPlaybackSettings.position] of [AudioContextBase.upcomingPlaybackSettings] to the given position.

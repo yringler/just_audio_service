@@ -22,7 +22,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
         super(baseTask: audioTask);
 
   @override
-  Future<void> onStart() async {
+  Future<void> onStart(Map<String, dynamic> params) async {
     await dataManager.openStorage();
     final _receivePort = ReceivePort();
 
@@ -31,7 +31,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
 
     _receivePort.listen(_answerPortMessage);
 
-    await baseTask.onStart();
+    await baseTask.onStart(params);
     IsolateNameServer.removePortNameMapping(SendPortID);
     _receivePort.close();
     await dataManager.closeStorage();

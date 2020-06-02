@@ -55,7 +55,7 @@ class ConnectingState extends MediaStateBase {
 
     // Notify that connecting to media.
     context.mediaItem = MediaItem(id: url, album: "lessons", title: "lesson");
-    super.setMediaState(state: BasicPlaybackState.connecting);
+    super.setMediaState(state: AudioProcessingState.connecting);
 
     final duration = await context.mediaPlayer.setUrl(url);
 
@@ -68,8 +68,8 @@ class ConnectingState extends MediaStateBase {
 
     // Notify length of media.
     context.mediaItem =
-        context.mediaItem.copyWith(duration: duration.inMilliseconds);
-    super.setMediaState(state: BasicPlaybackState.stopped);
+        context.mediaItem.copyWith(duration: duration);
+    super.setMediaState(state: AudioProcessingState.ready);
 
     super.reactToStream = true;
 

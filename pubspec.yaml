@@ -10,9 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  audio_service: ^0.7.2
-  just_audio: ^0.1.7
-  rxdart: ^0.24.0
+  audio_service: ^0.9.0
+  just_audio: ^0.1.10
+  rxdart: ^0.24.1
   hive: ^1.4.1+1
   
 dev_dependencies:

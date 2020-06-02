@@ -2,7 +2,7 @@ import 'package:audio_service/audio_service.dart';
 
 extension PlaybackStateExtensions on PlaybackState {
   PlaybackState copyWith(
-      {BasicPlaybackState basicState,
+      {AudioProcessingState processingState,
       Set<MediaAction> actions,
       int position,
       double speed,
@@ -14,9 +14,11 @@ extension PlaybackStateExtensions on PlaybackState {
 
     return PlaybackState(
         actions: actions ?? this.actions,
-        basicState: basicState ?? this.basicState,
+        processingState: processingState ?? this.processingState,
         position: position ?? this.position,
         speed: speed ?? this.speed,
-        updateTime: stateUpdateTime);
+        updateTime: stateUpdateTime,
+        playing: this.playing,
+        bufferedPosition: this.bufferedPosition);
   }
 }

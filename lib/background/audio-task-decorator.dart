@@ -1,14 +1,13 @@
 import 'package:audio_service/audio_service.dart';
 
 /// Supports mixing and matching audio tasks
-class AudioTaskDecorater extends BackgroundAudioTask 
-{
+class AudioTaskDecorater extends BackgroundAudioTask {
   final BackgroundAudioTask baseTask;
 
   AudioTaskDecorater({this.baseTask});
 
   @override
-  Future<void> onStart() => baseTask.onStart();
+  Future<void> onStart(Map<String, dynamic> params) => baseTask.onStart(params);
 
   @override
   void onStop() => baseTask.onStop();
@@ -29,18 +28,18 @@ class AudioTaskDecorater extends BackgroundAudioTask
   void onRewind() => baseTask.onRewind();
 
   @override
-  void onSeekTo(int position) => baseTask.onSeekTo(position);
+  void onSeekTo(Duration position) => baseTask.onSeekTo(position);
   @override
-  void onCustomAction(String name, dynamic arguments) => baseTask.onCustomAction(name, arguments);
+  Future<dynamic> onCustomAction(String name, dynamic arguments) =>
+      baseTask.onCustomAction(name, arguments);
 
   @override
-  void onAudioFocusGained() {}
+  void onSetSpeed(double speed) => baseTask.onSetSpeed(speed);
+
   @override
-  void onAudioFocusLost() {}
+  void onAudioFocusGained(AudioInterruption interruption) {}
   @override
-  void onAudioFocusLostTransient() {}
-  @override
-  void onAudioFocusLostTransientCanDuck() {}
+  void onAudioFocusLost(AudioInterruption interruption) {}
   @override
   void onAudioBecomingNoisy() {}
   @override

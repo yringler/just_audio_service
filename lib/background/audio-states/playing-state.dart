@@ -30,7 +30,7 @@ class PlayingState extends MediaStateBase {
     context.generalPlaybackSettings =
         context.generalPlaybackSettings.copyWith(speed: speed);
 
-    if (context.playBackState.basicState == BasicPlaybackState.playing) {
+    if (context.playBackState.playing) {
       await context.mediaPlayer.setSpeed(speed);
     }
 

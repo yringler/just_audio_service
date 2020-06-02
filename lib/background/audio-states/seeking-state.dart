@@ -37,7 +37,7 @@ class SeekingState extends MediaStateBase {
 
   @override
   Future<void> seek(Duration position) async {
-    if (position.inMilliseconds > context.mediaItem.duration) {
+    if (position > context.mediaItem.duration) {
       return;
     }
 
@@ -50,9 +50,9 @@ class SeekingState extends MediaStateBase {
     ++numSeeking;
 
     final basicState =
-        position.inMilliseconds > context.playBackState.currentPosition
-            ? BasicPlaybackState.fastForwarding
-            : BasicPlaybackState.rewinding;
+        position > context.playBackState.currentPosition
+            ? AudioProcessingState.fastForwarding
+            : AudioProcessingState.rewinding;
 
     // We're trying to get to that spot.
     setMediaState(state: basicState, position: position);

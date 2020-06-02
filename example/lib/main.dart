@@ -184,7 +184,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   _dragPositionSubject.add(value);
                 },
                 onChangeEnd: (value) {
-                  AudioService.seekTo(value.toInt());
+                  AudioService.seekTo(Duration(milliseconds: value.toInt()));
                   // Due to a delay in platform channel communication, there is
                   // a brief moment after releasing the Slider thumb before the
                   // new position is broadcast from the platform side. This
