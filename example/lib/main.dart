@@ -12,6 +12,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:just_audio_service/background/audio-task.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
+import 'package:just_audio_service/position-manager/position.dart';
 import 'package:just_audio_service/position-manager/positioned-audio-task.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -160,15 +161,11 @@ class MainScreen extends StatelessWidget {
       );
 
   Widget positionIndicator(MediaItem mediaItem, PlaybackState state) {
-    double seekPos;
-    return StreamBuilder(
-      stream: Rx.combineLatest2<double, double, double>(
-          _dragPositionSubject.stream,
-          Stream.periodic(Duration(milliseconds: 200)),
-          (dragPosition, _) => dragPosition),
+    return StreamBuilder<Position>(
+      stream: positionManager.positionStream,
       builder: (context, snapshot) {
         double position =
-            snapshot.data ?? state.currentPosition.inMilliseconds.toDouble();
+            snapshot.data?.position?.inMilliseconds?.toDouble() ?? state.currentPosition.inMilliseconds.toDouble();
         double duration = mediaItem?.duration?.inMilliseconds?.toDouble();
         return Column(
           children: [
@@ -176,20 +173,9 @@ class MainScreen extends StatelessWidget {
               Slider(
                 min: 0.0,
                 max: duration,
-                value: seekPos ?? max(0.0, min(position, duration)),
+                value: max(0.0, min(position, duration)),
                 onChanged: (value) {
-                  _dragPositionSubject.add(value);
-                },
-                onChangeEnd: (value) {
-                  AudioService.seekTo(Duration(milliseconds: value.toInt()));
-                  // Due to a delay in platform channel communication, there is
-                  // a brief moment after releasing the Slider thumb before the
-                  // new position is broadcast from the platform side. This
-                  // hack is to hold onto seekPos until the next state update
-                  // comes through.
-                  // TODO: Improve this code.
-                  seekPos = value;
-                  _dragPositionSubject.add(null);
+                  positionManager.seek(Duration(milliseconds: value.floor()));
                 },
               ),
             Text("${state.currentPosition}"),

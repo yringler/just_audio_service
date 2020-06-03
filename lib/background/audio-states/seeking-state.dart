@@ -49,24 +49,28 @@ class SeekingState extends MediaStateBase {
 
     ++numSeeking;
 
-    final basicState =
-        position > context.playBackState.currentPosition
-            ? AudioProcessingState.fastForwarding
-            : AudioProcessingState.rewinding;
+    final basicState = position > context.playBackState.currentPosition
+        ? AudioProcessingState.fastForwarding
+        : AudioProcessingState.rewinding;
 
     // We're trying to get to that spot.
     setMediaState(state: basicState, position: position);
 
     // Don't await. I'm not sure if it will complete before or after it's finished seeking,
     // so I'll check myself for when it reaches the correct position later.
-    context.mediaPlayer.seek(position);
+    // TODO: This section could use some work.
+    await context.mediaPlayer.seek(position);
 
     final reachedPositionState = await context.mediaPlayer.playbackEventStream
-        .firstWhere((event) => event.position == position);
+        .firstWhere(
+          (event) => event.position == position,
+          orElse: () => null,
+        )
+        .timeout(Duration(milliseconds: 250), onTimeout: () => null);
 
     if (didAbandonSeek) return;
 
-    if (reachedPositionState.buffering) {
+    if (reachedPositionState?.buffering ?? false) {
       await context.mediaPlayer.playbackEventStream
           .firstWhere((event) => !event.buffering)
           .timeout(Duration(milliseconds: 250), onTimeout: () => null);
