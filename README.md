@@ -15,7 +15,39 @@ Note that
 * The position data manager is optional. Don't pass it in, everything else will still work. (TODO: add a `MemoryPositionManager`, which keeps track of positions in memory, per app run)
 * If you don't want the persistance, you can just use AudioTask()
 * You can get the help with seeking (a new stream which doesn't lag with constant location updates) with just using the regular `AudioTask`
+For simpler usage, you can just use `AudioTask` in your top level audio_service `_audioPlayerTaskEntrypoint`.
+Using position data manager is more involved:
 ```dart
+
+Future<IPositionDataManager> getPositionManager() async {
+  final parentFolder = await getApplicationDocumentsDirectory();
+  final hivePath = "${parentFolder.path}/hive";
+
+  return PositionDataManager(storePath: hivePath);
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<IPositionDataManager>(
+      future: getPositionManager(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        positionManager ??= PositionManager(positionDataManager: snapshot.data);
+
+        return MaterialApp(
+          title: 'Audio Service Demo',
+          theme: ThemeData(primarySwatch: Colors.blue),
+          home: AudioServiceWidget(child: MainScreen()),
+        );
+      },
+    );
+  }
+}
+
 // A simple example, if you don't want to use DI.
 // Possibly this will be available staticaly from the package in the future
 final positionManager = PositionManager(
@@ -25,8 +57,8 @@ final positionManager = PositionManager(
 
 // NOTE: Your entrypoint MUST be a top-level function.
 void _audioPlayerTaskEntrypoint() async {
-  AudioServiceBackground.run(
-      () => PositionedAudioTask(audioTask: AudioTask(), storePath: "hive"));
+  AudioServiceBackground.run(() => PositionedAudioTask(
+      audioTask: AudioTask(), positionDataManagerFactory: getPositionManager));
 }
 ```
 
