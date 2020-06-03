@@ -36,7 +36,6 @@ class MainScreen extends StatelessWidget {
           stream: _screenStateStream,
           builder: (context, snapshot) {
             final screenState = snapshot.data;
-            final queue = screenState?.queue;
             final mediaItem = screenState?.mediaItem;
             final state = screenState?.playbackState;
             final processingState =
@@ -45,26 +44,6 @@ class MainScreen extends StatelessWidget {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (queue != null && queue.isNotEmpty)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.skip_previous),
-                        iconSize: 64.0,
-                        onPressed: mediaItem == queue.first
-                            ? null
-                            : AudioService.skipToPrevious,
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.skip_next),
-                        iconSize: 64.0,
-                        onPressed: mediaItem == queue.last
-                            ? null
-                            : AudioService.skipToNext,
-                      ),
-                    ],
-                  ),
                 if (mediaItem?.title != null) Text(mediaItem.title),
                 if (processingState == AudioProcessingState.none) ...[
                   audioPlayerButton(),
@@ -107,12 +86,10 @@ class MainScreen extends StatelessWidget {
   /// Encapsulate all the different data we're interested in into a single
   /// stream so we don't have to nest StreamBuilders.
   Stream<ScreenState> get _screenStateStream =>
-      Rx.combineLatest3<List<MediaItem>, MediaItem, PlaybackState, ScreenState>(
-          AudioService.queueStream,
+      Rx.combineLatest2<MediaItem, PlaybackState, ScreenState>(
           AudioService.currentMediaItemStream,
           AudioService.playbackStateStream,
-          (queue, mediaItem, playbackState) =>
-              ScreenState(queue, mediaItem, playbackState));
+          (mediaItem, playbackState) => ScreenState(mediaItem, playbackState));
 
   RaisedButton audioPlayerButton() => startButton(
       'AudioPlayer',
@@ -192,11 +169,10 @@ class MainScreen extends StatelessWidget {
 }
 
 class ScreenState {
-  final List<MediaItem> queue;
   final MediaItem mediaItem;
   final PlaybackState playbackState;
 
-  ScreenState(this.queue, this.mediaItem, this.playbackState);
+  ScreenState(this.mediaItem, this.playbackState);
 }
 
 // NOTE: Your entrypoint MUST be a top-level function.
