@@ -24,6 +24,9 @@ void main() {
   runApp(new MyApp());
 }
 
+const audioUrl =
+    "https://insidechassidus.org/wp-content/uploads/classes/Life Lessons/Avoda/simcha_MM_2007_64bit.mp3";
+
 Future<IPositionDataManager> getPositionManager() async {
   final parentFolder = await getApplicationDocumentsDirectory();
   final hivePath = "${parentFolder.path}/hive";
@@ -130,11 +133,19 @@ class MainScreen extends StatelessWidget {
             backgroundTaskEntrypoint: _audioPlayerTaskEntrypoint,
             androidNotificationChannelName: 'Audio Service Demo',
             // Enable this if you want the Android service to exit the foreground state on pause.
-            //androidStopForegroundOnPause: true,
+            androidStopForegroundOnPause: true,
             androidNotificationColor: 0xFF2196f3,
             androidNotificationIcon: 'mipmap/ic_launcher',
-          ).then((value) => AudioService.playFromMediaId(
-              "https://insidechassidus.org/wp-content/uploads/classes/Life Lessons/Avoda/simcha_MM_2007_64bit.mp3")));
+          ).then((value) async {
+            final startPosition =
+                await positionManager.positionDataManager.getPosition(audioUrl);
+
+            await AudioService.playFromMediaId(audioUrl);
+
+            if (startPosition > Duration.zero) {
+              positionManager.seek(startPosition);
+            }
+          }));
 
   RaisedButton startButton(String label, VoidCallback onPressed) =>
       RaisedButton(
@@ -164,8 +175,8 @@ class MainScreen extends StatelessWidget {
     return StreamBuilder<Position>(
       stream: positionManager.positionStream,
       builder: (context, snapshot) {
-        double position =
-            snapshot.data?.position?.inMilliseconds?.toDouble() ?? state.currentPosition.inMilliseconds.toDouble();
+        double position = snapshot.data?.position?.inMilliseconds?.toDouble() ??
+            state.currentPosition.inMilliseconds.toDouble();
         double duration = mediaItem?.duration?.inMilliseconds?.toDouble();
         return Column(
           children: [

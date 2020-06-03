@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -19,20 +20,26 @@ class PositionedAudioTask extends AudioTaskDecorater {
   final PositionDataManagerFactory positionDataManagerFactory;
   IPositionDataManager dataManager;
 
+  final ReceivePort _receivePort = ReceivePort();
+
+  /// Messages can come in before any backing data service is initilized.
+  /// Here, we keep track of when things are ready. This is awaited in [_answerPortMessage(message)].
+  final Completer<void> _readyToAnswerMessages = Completer();
+
   PositionedAudioTask(
       {BackgroundAudioTask audioTask, this.positionDataManagerFactory})
-      : super(baseTask: audioTask);
+      : super(baseTask: audioTask) {
+    IsolateNameServer.removePortNameMapping(SendPortID);
+    IsolateNameServer.registerPortWithName(_receivePort.sendPort, SendPortID);
+
+    _receivePort.listen((data) => _answerPortMessage(data as List<dynamic>));
+  }
 
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
     dataManager ??= await positionDataManagerFactory();
     await dataManager.init();
-    final _receivePort = ReceivePort();
-
-    IsolateNameServer.removePortNameMapping(SendPortID);
-    IsolateNameServer.registerPortWithName(_receivePort.sendPort, SendPortID);
-
-    _receivePort.listen((data) => _answerPortMessage(data as List<dynamic>));
+    _readyToAnswerMessages.complete();
 
     await baseTask.onStart(params);
     IsolateNameServer.removePortNameMapping(SendPortID);
@@ -45,6 +52,8 @@ class PositionedAudioTask extends AudioTaskDecorater {
   /// The first item in the list will always be a [SendPort].
   /// The second is the name of the command, for example [GetPositionsCommand].
   void _answerPortMessage(List<dynamic> message) async {
+    await _readyToAnswerMessages.future;
+
     final sendPort = message[0] as SendPort;
     final command = message[1] as String;
 
@@ -55,7 +64,8 @@ class PositionedAudioTask extends AudioTaskDecorater {
         final idsToGetPositionOf = (message[2] as List<dynamic>).cast<String>();
         final sendablePositions = (await dataManager
                 .getPositions(idsToGetPositionOf))
-            .map((position) => [position.id, position.position.inMilliseconds]);
+            .map((position) => [position.id, position.position.inMilliseconds])
+            .toList();
         sendPort.send(sendablePositions);
         break;
       case SetPositionCommand:

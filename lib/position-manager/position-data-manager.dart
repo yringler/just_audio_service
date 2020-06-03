@@ -74,6 +74,7 @@ class HivePositionDataManager extends IPositionDataManager {
   }
 
   @override
+
   /// Close connection to disk storage.
   /// This is done to allow a diffirent isolate access.
   Future<void> close() async {
@@ -88,7 +89,10 @@ class HivePositionDataManager extends IPositionDataManager {
 
   Future<List<Position>> getPositions(List<String> ids) async {
     await init();
-    return ids.map((id) => positionBox.get(id)).toList();
+    return ids
+        .map((id) =>
+            positionBox.get(id) ?? Position(id: id, position: Duration.zero))
+        .toList();
   }
 
   Future<void> setPosition(Position position) async {
@@ -131,7 +135,8 @@ class AudioServicePositionManager extends IPositionDataManager {
     }
 
     final receivePort = ReceivePort();
-    sendPort.send([receivePort.sendPort, ids]);
+    sendPort.send(
+        [receivePort.sendPort, PositionedAudioTask.GetPositionsCommand, ids]);
     final positions = await receivePort.first;
     receivePort.close();
 
@@ -141,7 +146,7 @@ class AudioServicePositionManager extends IPositionDataManager {
 
       return Position(
           id: id, position: Duration(milliseconds: positionMilliseconds));
-    });
+    }).toList();
   }
 
   @override
@@ -154,8 +159,12 @@ class AudioServicePositionManager extends IPositionDataManager {
     }
 
     final receivePort = ReceivePort();
-    sendPort.send(
-        [receivePort.sendPort, position.id, position.position.inMilliseconds]);
+    sendPort.send([
+      receivePort.sendPort,
+      PositionedAudioTask.SetPositionCommand,
+      position.id,
+      position.position.inMilliseconds
+    ]);
     await receivePort.first;
   }
 }
