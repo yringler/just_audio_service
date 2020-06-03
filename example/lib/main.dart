@@ -10,17 +10,44 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio_service/background/audio-task.dart';
+import 'package:just_audio_service/position-manager/position-data-manager.dart';
+import 'package:just_audio_service/position-manager/position-manager.dart';
+import 'package:just_audio_service/position-manager/positioned-audio-task.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 
-void main() => runApp(new MyApp());
+PositionManager positionManager;
+String hivePath;
+
+void main() {
+  runApp(new MyApp());
+}
+
+Future<IPositionDataManager> getPositionManager() async {
+  final parentFolder = await getApplicationDocumentsDirectory();
+  final hivePath = "${parentFolder.path}/hive";
+
+  return PositionDataManager(storePath: hivePath);
+}
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Audio Service Demo',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: AudioServiceWidget(child: MainScreen()),
+    return FutureBuilder<IPositionDataManager>(
+      future: getPositionManager(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        positionManager ??= PositionManager(positionDataManager: snapshot.data);
+
+        return MaterialApp(
+          title: 'Audio Service Demo',
+          theme: ThemeData(primarySwatch: Colors.blue),
+          home: AudioServiceWidget(child: MainScreen()),
+        );
+      },
     );
   }
 }
@@ -181,6 +208,7 @@ class ScreenState {
 }
 
 // NOTE: Your entrypoint MUST be a top-level function.
-void _audioPlayerTaskEntrypoint() async {
-  AudioServiceBackground.run(() => AudioTask());
+void _audioPlayerTaskEntrypoint() {
+  AudioServiceBackground.run(() => PositionedAudioTask(
+      audioTask: AudioTask(), positionDataManagerFactory: getPositionManager));
 }

@@ -23,6 +23,7 @@ dependencies:
   just_audio_service:
     path: ../
   audio_service: ^0.9.0
+  path_provider: ^1.6.10
 
 
 dev_dependencies:

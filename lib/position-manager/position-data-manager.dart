@@ -14,12 +14,15 @@ abstract class IPositionDataManager {
   Future<List<Position>> getPositions(List<String> ids);
 
   Future<void> setPosition(Position position);
+
+  Future<void> init() async {}
+  Future<void> close() async {}
 }
 
 /// Wrapper around the two position manager implementations.
 /// If the audio task is running, interacts with it to get/set postions.
 /// Otherwise, uses disk.
-class PositionDataManager implements IPositionDataManager {
+class PositionDataManager extends IPositionDataManager {
   final HivePositionDataManager _hiveManager;
   final AudioServicePositionManager _serviceManager =
       AudioServicePositionManager();
@@ -31,7 +34,7 @@ class PositionDataManager implements IPositionDataManager {
       AudioService.connected ? _serviceManager : _hiveManager;
 
   Future<void> isStartingAudioService() async {
-    await _hiveManager.closeStorage();
+    await _hiveManager.close();
   }
 
   @override
@@ -47,7 +50,7 @@ class PositionDataManager implements IPositionDataManager {
 }
 
 /// Saves position to disk.
-class HivePositionDataManager implements IPositionDataManager {
+class HivePositionDataManager extends IPositionDataManager {
   static const positionBoxName = "positions";
   static const int maxSavedPositions = 2000;
 
@@ -56,7 +59,8 @@ class HivePositionDataManager implements IPositionDataManager {
   HivePositionDataManager({this.storePath});
 
   /// Connect to disk storage.
-  Future<void> openStorage() async {
+  @override
+  Future<void> init() async {
     if (Hive.isBoxOpen(positionBoxName)) {
       return;
     } else {
@@ -69,25 +73,26 @@ class HivePositionDataManager implements IPositionDataManager {
     await _constrainBoxSize();
   }
 
+  @override
   /// Close connection to disk storage.
   /// This is done to allow a diffirent isolate access.
-  Future<void> closeStorage() async {
+  Future<void> close() async {
     await Hive.close();
     positionBox = null;
   }
 
   Future<Duration> getPosition(String id) async {
-    await openStorage();
+    await init();
     return positionBox.get(id) ?? Duration.zero;
   }
 
   Future<List<Position>> getPositions(List<String> ids) async {
-    await openStorage();
+    await init();
     return ids.map((id) => positionBox.get(id)).toList();
   }
 
   Future<void> setPosition(Position position) async {
-    await openStorage();
+    await init();
     await positionBox.put(position.id, position);
   }
 
@@ -111,9 +116,10 @@ class HivePositionDataManager implements IPositionDataManager {
 }
 
 /// Saves and retrieves position by interacting with the background audio task isolate.
-class AudioServicePositionManager implements IPositionDataManager {
+class AudioServicePositionManager extends IPositionDataManager {
   @override
-  Future<Duration> getPosition(String id) async => (await getPositions([id])).first.position;
+  Future<Duration> getPosition(String id) async =>
+      (await getPositions([id])).first.position;
 
   @override
   Future<List<Position>> getPositions(List<String> ids) async {
