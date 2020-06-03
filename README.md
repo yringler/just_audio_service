@@ -8,6 +8,29 @@ either background or UI thread.<br>
 Note that initial goal is only to support a limited set of requirements, not to be properly configurable.<br>
 That being said, I hope that it is a good starting point for others to base their implementations off, and PRs (or feature requests) are most welcome.
 
+# Usage
+This package has two things, a regular implementation of `BackgroundAudioTask`, and a `PositionedAudioTask` which, together with a `PositionManager` on the UI side, helps keep track of current position (no more ui lag for position sliders) and optinaly save a position (with hivedb).
+The example app uses the position abilities, which comes down to a few snippets.
+Note that
+* A backing audio task is passed in
+* A position data manager, which persists the position, is passed in
+* If you don't want the persistance, you can just use AudioTask()
+* You can get the help with seeking (a new stream which doesn't lag with constant location updates) with just using the regular `AudioTask`
+```dart
+// A simple example, if you don't want to use DI.
+// Possibly this will be available staticaly from the package in the future
+final positionManager = PositionManager(
+    positionDataManager: PositionDataManager(storePath: "hive"));
+
+...
+
+// NOTE: Your entrypoint MUST be a top-level function.
+void _audioPlayerTaskEntrypoint() async {
+  AudioServiceBackground.run(
+      () => PositionedAudioTask(audioTask: AudioTask(), storePath: "hive"));
+}
+```
+
 ### Motivation
 My initial audio BackgroundAudioTask quickly descended into a labyrinth of spaghetti code, inhabited by hosts of minotaur quick to consume any who hoped to maintain it.
 
