@@ -79,6 +79,9 @@ abstract class MediaStateBase {
       {@required AudioProcessingState state,
       @required AudioPlaybackState justAudioState,
       Duration position}) {
+    // I put in this null check while trying to figure out why the wrong icon was showing up
+    // in the notification. This ended up having nothing to do with it, but possibly is a good idea?
+    // Probably not needed. (Late night...)
     if (context.stateHandler != this) {
       return;
     }
