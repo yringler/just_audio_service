@@ -56,7 +56,7 @@ class PositionManager {
   /// will effect current media.
   void seek(Duration location, {String id}) {
     _seekingValues.add(Position(
-        id: id ?? AudioService.currentMediaItem.id, position: location));
+        id: id ?? AudioService.currentMediaItem?.id, position: location));
   }
 
   /// Skips the requested time span for the given id. If ID is ommited, will

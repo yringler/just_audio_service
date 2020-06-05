@@ -45,7 +45,7 @@ class PlayingState extends MediaStateBase {
 
   @override
   Future<void> play() async {
-    await context.mediaPlayer.play();
+    context.mediaPlayer.play();
 
     // Respond to seek request that was placed before playback started (when seeking wasn't neccessarily
     // possible yet).

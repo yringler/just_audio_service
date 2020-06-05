@@ -76,7 +76,7 @@ abstract class MediaStateBase {
           GeneralPlaybackSettings(speed: speed);
 
   void setMediaState({@required AudioProcessingState state, Duration position}) {
-    position ??= context.upcomingPlaybackSettings?.position?.inMilliseconds ??
+    position ??= context.upcomingPlaybackSettings?.position ??
         Duration.zero;
 
     context.playBackState = PlaybackState(

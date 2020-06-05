@@ -61,7 +61,9 @@ class AudioTask extends BackgroundAudioTask implements IContextAudioTask {
 
   Future<void> _dispose() async {
     await context.mediaPlayer.dispose();
-    _completer.complete();
+    if (!_completer.isCompleted) {
+        _completer.complete();
+    }
   }
 
     @override

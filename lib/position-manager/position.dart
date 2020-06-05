@@ -6,26 +6,24 @@ part 'position.g.dart';
 @HiveType(typeId: 0)
 class Position extends HiveObject {
   Position({Duration position, String id}) {
-    this.position = position;
-    this._createdDate = DateTime.now().millisecondsSinceEpoch;
+    if (position != null) {
+      this.position = position;
+    }
     this.id = id;
   }
 
   /// When the file was created, or the position was last updated.
   DateTime get createdDate => DateTime.fromMillisecondsSinceEpoch(_createdDate);
 
-  Duration get position {
-    _createdDate = DateTime.now().millisecondsSinceEpoch;
-    return Duration(milliseconds: _position);
-  }
+  Duration get position => Duration(milliseconds: _position ?? 0);
 
   set position(Duration position) {
-    _position = position.inMilliseconds;
+    _position = position?.inMilliseconds ?? 0;
   }
 
   /// Expose the id whose position is being described, independent of hive storage.
   String get id {
-    return _id ?? key;
+    return key ?? _id;
   }
 
   set id(String id) => _id = id;
