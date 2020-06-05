@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_service/background/audio-context.dart';
+import 'package:just_audio_service/background/icontext-audio-task.dart';
 
-class AudioTask extends BackgroundAudioTask {
+class AudioTask extends BackgroundAudioTask implements IContextAudioTask {
   final AudioContext context = AudioContext();
   final Completer _completer = Completer();
 

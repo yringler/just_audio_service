@@ -1,8 +1,13 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:just_audio_service/background/audio-context.dart';
+import 'package:just_audio_service/background/icontext-audio-task.dart';
 
 /// Supports mixing and matching audio tasks
-class AudioTaskDecorater extends BackgroundAudioTask {
-  final BackgroundAudioTask baseTask;
+class AudioTaskDecorater extends BackgroundAudioTask implements IContextAudioTask {
+  final IContextAudioTask baseTask;
+
+    @override
+  AudioContext get context => baseTask.context;
 
   AudioTaskDecorater({this.baseTask});
 

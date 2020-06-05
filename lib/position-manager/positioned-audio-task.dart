@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio_service/background/audio-task-decorator.dart';
+import 'package:just_audio_service/background/icontext-audio-task.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 import 'package:just_audio_service/position-manager/position.dart';
@@ -27,7 +28,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
   final Completer<void> _readyToAnswerMessages = Completer();
 
   PositionedAudioTask(
-      {BackgroundAudioTask audioTask, this.positionDataManagerFactory})
+      {IContextAudioTask audioTask, this.positionDataManagerFactory})
       : super(baseTask: audioTask) {
     IsolateNameServer.removePortNameMapping(SendPortID);
     IsolateNameServer.registerPortWithName(_receivePort.sendPort, SendPortID);
@@ -41,10 +42,33 @@ class PositionedAudioTask extends AudioTaskDecorater {
     await dataManager.init();
     _readyToAnswerMessages.complete();
 
+    final subscription = context.mediaStateStream
+        // The only thing we don't want to update for is stopped.
+        // stop - is tricky, because by convention stop means to reset the saved position, but
+        // currently [onStop()] is also called if user kills background service manually, eg by
+        // swiping away the notification.
+        // I opened up an issue with audio_service, for now I'll persist in the [onStop()] callback.
+        .where((event) =>
+            event.playing ||
+            event.processingState == AudioProcessingState.ready)
+        .listen((state) => dataManager.setPosition(Position(
+            id: context.mediaItem.id, position: state.currentPosition)));
+
     await baseTask.onStart(params);
+
     IsolateNameServer.removePortNameMapping(SendPortID);
     _receivePort.close();
+    subscription.cancel();
     await dataManager.close();
+  }
+
+  @override
+  void onStop() => _onStop();
+  Future<void> _onStop() async {
+    await dataManager.setPosition(Position(
+        id: context.mediaItem.id,
+        position: context.playBackState.currentPosition));
+    super.onStop();
   }
 
   /// Send the correct response according to the message that we recieved from
