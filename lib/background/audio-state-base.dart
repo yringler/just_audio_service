@@ -48,7 +48,7 @@ abstract class MediaStateBase {
   /// Uses [reactToStream] to ignore events if a particular [MediaStateBase] doesn't
   /// want that event to be handled for whatever reason.
   void onPlaybackEvent(AudioPlaybackEvent event) {
-    if (reactToStream) {
+  if (reactToStream) {
       context.playBackState = PlaybackState(
           processingState: stateToStateMap[event.state],
           actions: stateToActionsMap[event.state],
@@ -75,13 +75,17 @@ abstract class MediaStateBase {
       context.generalPlaybackSettings?.copyWith(speed: speed) ??
           GeneralPlaybackSettings(speed: speed);
 
-  void setMediaState({@required AudioProcessingState state, Duration position}) {
+  void setMediaState({@required AudioProcessingState state, @required AudioPlaybackState justAudioState, Duration position}) {
+    if (context.stateHandler != this) {
+      return;
+    }
+
     position ??= context.upcomingPlaybackSettings?.position ??
         Duration.zero;
 
     context.playBackState = PlaybackState(
         processingState: state,
-        actions: MediaStateBase.stateToActionsMap[state],
+        actions: MediaStateBase.stateToActionsMap[justAudioState],
         position: position,
         updateTime: Duration(milliseconds: DateTime.now().millisecondsSinceEpoch),
         speed: context.generalPlaybackSettings?.speed ?? 1,

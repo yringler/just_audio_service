@@ -54,7 +54,10 @@ class SeekingState extends MediaStateBase {
         : AudioProcessingState.rewinding;
 
     // We're trying to get to that spot.
-    setMediaState(state: basicState, position: position);
+    setMediaState(
+        state: basicState,
+        justAudioState: context.mediaPlayer.playbackState,
+        position: position);
 
     // Don't await. I'm not sure if it will complete before or after it's finished seeking,
     // so I'll check myself for when it reaches the correct position later.
@@ -86,6 +89,7 @@ class SeekingState extends MediaStateBase {
     setMediaState(
         state:
             MediaStateBase.stateToStateMap[context.mediaPlayer.playbackState],
+        justAudioState: context.mediaPlayer.playbackState,
         position: position);
 
     // Set the state handler before calling complete() on doneSeeking.

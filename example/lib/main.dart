@@ -94,8 +94,7 @@ class MainScreen extends StatelessWidget {
                 if (processingState != AudioProcessingState.none &&
                     processingState != AudioProcessingState.stopped) ...[
                   positionIndicator(mediaItem, state),
-                  Text("Processing state: " +
-                      "$processingState".replaceAll(RegExp(r'^.*\.'), '')),
+                  Text("Processing state: " + "$processingState"),
                   StreamBuilder(
                     stream: AudioService.customEventStream,
                     builder: (context, snapshot) {

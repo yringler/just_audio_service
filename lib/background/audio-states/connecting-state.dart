@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/audio-state-base.dart';
 import 'package:just_audio_service/background/audio-states/playing-state.dart';
@@ -55,7 +56,7 @@ class ConnectingState extends MediaStateBase {
 
     // Notify that connecting to media.
     context.mediaItem = MediaItem(id: url, album: "lessons", title: "lesson");
-    super.setMediaState(state: AudioProcessingState.connecting);
+    super.setMediaState(state: AudioProcessingState.connecting, justAudioState: AudioPlaybackState.connecting);
 
     final duration = await context.mediaPlayer.setUrl(url);
 
@@ -69,7 +70,7 @@ class ConnectingState extends MediaStateBase {
     // Notify length of media.
     context.mediaItem =
         context.mediaItem.copyWith(duration: duration);
-    super.setMediaState(state: AudioProcessingState.ready);
+    super.setMediaState(state: AudioProcessingState.ready, justAudioState: AudioPlaybackState.stopped);
 
     super.reactToStream = true;
 

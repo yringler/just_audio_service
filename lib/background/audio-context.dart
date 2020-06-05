@@ -114,8 +114,8 @@ class AudioContext extends AudioContextBase {
   set playBackState(PlaybackState state) {
     AudioServiceBackground.setState(
         controls: state.playing
-            ? [playControl]
-            : [pauseControl],
+            ? [pauseControl]
+            : [playControl],
         systemActions: state.actions?.toList() ?? List(),
         playing: state.playing,
         bufferedPosition: state.bufferedPosition,
