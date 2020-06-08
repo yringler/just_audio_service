@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:ui';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:hive/hive.dart';
+import 'package:hive/src/hive_impl.dart';
 import 'package:just_audio_service/position-manager/position.dart';
 import 'package:just_audio_service/position-manager/positioned-audio-task.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// Save position, and get it back.
 abstract class IPositionDataManager {
@@ -23,12 +24,11 @@ abstract class IPositionDataManager {
 /// If the audio task is running, interacts with it to get/set postions.
 /// Otherwise, uses disk.
 class PositionDataManager extends IPositionDataManager {
-  final HivePositionDataManager _hiveManager;
+  final HivePositionDataManager _hiveManager = HivePositionDataManager();
   final AudioServicePositionManager _serviceManager =
       AudioServicePositionManager();
 
-  PositionDataManager({String storePath})
-      : _hiveManager = HivePositionDataManager(storePath: storePath);
+  PositionDataManager();
 
   IPositionDataManager get _activeManager =>
       AudioService.connected ? _serviceManager : _hiveManager;
@@ -51,24 +51,31 @@ class PositionDataManager extends IPositionDataManager {
 
 /// Saves position to disk.
 class HivePositionDataManager extends IPositionDataManager {
+  static final positionHive = HiveImpl();
   static const positionBoxName = "positions";
   static const int maxSavedPositions = 2000;
 
-  final String storePath;
   Box<Position> positionBox;
-  HivePositionDataManager({this.storePath});
+  HivePositionDataManager();
 
   /// Connect to disk storage.
   @override
   Future<void> init() async {
-    if (Hive.isBoxOpen(positionBoxName)) {
+    if (positionHive.isBoxOpen(positionBoxName)) {
       return;
     } else {
-      Hive.init(storePath);
-      Hive.registerAdapter(PositionAdapter());
+      try {
+        final hivePath = await getApplicationDocumentsDirectory();
+
+        positionHive.init("${hivePath.path}/just_audio_service_hive");
+        positionHive.registerAdapter(PositionAdapter());
+      } catch (ex) {
+        print("Error opening hive: position");
+        print(ex);
+      }
     }
 
-    positionBox = await Hive.openBox<Position>(positionBoxName);
+    positionBox = await positionHive.openBox<Position>(positionBoxName);
 
     await _constrainBoxSize();
   }
@@ -78,14 +85,12 @@ class HivePositionDataManager extends IPositionDataManager {
   /// Close connection to disk storage.
   /// This is done to allow a diffirent isolate access.
   Future<void> close() async {
-    await Hive.close();
+    await positionHive.close();
     positionBox = null;
   }
 
-  Future<Duration> getPosition(String id) async {
-    await init();
-    return positionBox.get(id) ?? Duration.zero;
-  }
+  Future<Duration> getPosition(String id) async =>
+      (await getPositions([id]))[0].position;
 
   Future<List<Position>> getPositions(List<String> ids) async {
     await init();

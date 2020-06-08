@@ -3,7 +3,9 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:just_audio_service/background/audio-task-decorator.dart';
+import 'package:just_audio_service/background/audio-task.dart';
 import 'package:just_audio_service/background/icontext-audio-task.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
@@ -18,8 +20,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
   static const String GetPositionsCommand = 'getPosition';
   static const String SetPositionCommand = 'setPosition';
 
-  final PositionDataManagerFactory positionDataManagerFactory;
-  IPositionDataManager dataManager;
+  final IPositionDataManager dataManager;
 
   final ReceivePort _receivePort = ReceivePort();
 
@@ -27,8 +28,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
   /// Here, we keep track of when things are ready. This is awaited in [_answerPortMessage(message)].
   final Completer<void> _readyToAnswerMessages = Completer();
 
-  PositionedAudioTask(
-      {IContextAudioTask audioTask, this.positionDataManagerFactory})
+  PositionedAudioTask({@required IContextAudioTask audioTask, this.dataManager})
       : super(baseTask: audioTask) {
     IsolateNameServer.removePortNameMapping(SendPortID);
     IsolateNameServer.registerPortWithName(_receivePort.sendPort, SendPortID);
@@ -36,9 +36,12 @@ class PositionedAudioTask extends AudioTaskDecorater {
     _receivePort.listen((data) => _answerPortMessage(data as List<dynamic>));
   }
 
+  /// Initilize a [PositionedAudioTask] with default audio task and data manager implementations.
+  PositionedAudioTask.standard()
+      : this(audioTask: AudioTask(), dataManager: HivePositionDataManager());
+
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
-    dataManager ??= await positionDataManagerFactory();
     await dataManager.init();
     _readyToAnswerMessages.complete();
 

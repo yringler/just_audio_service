@@ -9,16 +9,14 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:just_audio_service/background/audio-task.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 import 'package:just_audio_service/position-manager/position.dart';
 import 'package:just_audio_service/position-manager/positioned-audio-task.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 
-PositionManager positionManager;
-String hivePath;
+final positionManager =
+    PositionManager(positionDataManager: HivePositionDataManager());
 
 void main() {
   runApp(new MyApp());
@@ -27,40 +25,16 @@ void main() {
 const audioUrl =
     "https://insidechassidus.org/wp-content/uploads/classes/Life Lessons/Avoda/simcha_MM_2007_64bit.mp3";
 
-Future<IPositionDataManager> getPositionManager() async {
-  final parentFolder = await getApplicationDocumentsDirectory();
-  final hivePath = "${parentFolder.path}/hive";
-
-  return PositionDataManager(storePath: hivePath);
-}
-
 class MyApp extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<IPositionDataManager>(
-      future: getPositionManager(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
-        }
-
-        positionManager ??= PositionManager(positionDataManager: snapshot.data);
-
-        return MaterialApp(
-          title: 'Audio Service Demo',
-          theme: ThemeData(primarySwatch: Colors.blue),
-          home: AudioServiceWidget(child: MainScreen()),
-        );
-      },
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'Audio Service Demo',
+        theme: ThemeData(primarySwatch: Colors.blue),
+        home: AudioServiceWidget(child: MainScreen()),
+      );
 }
 
 class MainScreen extends StatelessWidget {
-  /// Tracks the position while the user drags the seek bar.
-  final BehaviorSubject<double> _dragPositionSubject =
-      BehaviorSubject.seeded(null);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -205,6 +179,5 @@ class ScreenState {
 
 // NOTE: Your entrypoint MUST be a top-level function.
 void _audioPlayerTaskEntrypoint() {
-  AudioServiceBackground.run(() => PositionedAudioTask(
-      audioTask: AudioTask(), positionDataManagerFactory: getPositionManager));
+  AudioServiceBackground.run(() => PositionedAudioTask.standard());
 }

@@ -90,6 +90,10 @@ class PositionManager {
 
   // An event from audio_service is only relevant if we aren't in the middle of seeking.
   bool _isAudioServiceEventRelevant() {
+    if (AudioService.currentMediaItem == null) {
+      return false;
+    }
+
     if (_ignoreAudioServiceUntil == null) {
       return true;
     }
