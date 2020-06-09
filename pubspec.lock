@@ -165,12 +165,10 @@ packages:
   dartx:
     dependency: transitive
     description:
-      path: "."
-      ref: update-path
-      resolved-ref: ca0196ed34aea7f5383c3c6c6f680c8082e2c78e
-      url: "https://github.com/yringler/dartx"
-    source: git
-    version: "0.4.2"
+      name: dartx
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.4.1"
   file:
     dependency: transitive
     description:
@@ -227,8 +225,8 @@ packages:
     dependency: "direct main"
     description:
       path: hive
-      ref: update-dartx
-      resolved-ref: "65970f538ee8d665ba9428c96d5d87e3b30b2893"
+      ref: update-dartx-temp
+      resolved-ref: f74a05d7a9371d3b6d62d32433649a88541acf0b
       url: "https://github.com/yringler/hive"
     source: git
     version: "1.4.1+2"
@@ -236,8 +234,8 @@ packages:
     dependency: "direct dev"
     description:
       path: hive_generator
-      ref: update-dartx
-      resolved-ref: "65970f538ee8d665ba9428c96d5d87e3b30b2893"
+      ref: update-dartx-temp
+      resolved-ref: f74a05d7a9371d3b6d62d32433649a88541acf0b
       url: "https://github.com/yringler/hive"
     source: git
     version: "0.7.0+3"

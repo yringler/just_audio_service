@@ -49,7 +49,7 @@ packages:
       name: crypto
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.4"
+    version: "2.1.5"
   file:
     dependency: transitive
     description:
@@ -85,8 +85,8 @@ packages:
     dependency: transitive
     description:
       path: hive
-      ref: update-dartx
-      resolved-ref: "65970f538ee8d665ba9428c96d5d87e3b30b2893"
+      ref: update-dartx-temp
+      resolved-ref: f74a05d7a9371d3b6d62d32433649a88541acf0b
       url: "https://github.com/yringler/hive"
     source: git
     version: "1.4.1+2"
