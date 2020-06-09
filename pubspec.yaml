@@ -10,15 +10,23 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  audio_service: ^0.9.0
-  just_audio: ^0.1.10
+  audio_service: ^0.10.0
+  just_audio: "0.2.0"
   rxdart: ^0.24.1
-  hive: ^1.4.1+1
+  hive:
+    git:
+      url: https://github.com/yringler/hive
+      path: hive
+      ref: update-dartx
   path_provider: ^1.4.0
   
 dev_dependencies:
     build_runner: ^1.10.0
-    hive_generator: ^0.7.0+2
+    hive_generator:
+      git:
+        url: https://github.com/yringler/hive
+        path: hive_generator
+        ref: update-dartx
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
