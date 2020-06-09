@@ -74,6 +74,14 @@ class PositionedAudioTask extends AudioTaskDecorater {
     super.onStop();
   }
 
+  @override
+  void onPlayFromMediaId(String mediaId) => _onPlayFromMediaId(mediaId);
+  void _onPlayFromMediaId(String mediaId) async {
+    final start = await dataManager.getPosition(mediaId);
+    super.onPlayFromMediaId(mediaId);
+    onSeekTo(start);
+  }
+
   /// Send the correct response according to the message that we recieved from
   /// the UI isolate.
   /// The first item in the list will always be a [SendPort].

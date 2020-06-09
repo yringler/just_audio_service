@@ -110,14 +110,7 @@ class MainScreen extends StatelessWidget {
             androidNotificationColor: 0xFF2196f3,
             androidNotificationIcon: 'mipmap/ic_launcher',
           ).then((value) async {
-            final startPosition =
-                await positionManager.positionDataManager.getPosition(audioUrl);
-
             await AudioService.playFromMediaId(audioUrl);
-
-            if (startPosition > Duration.zero) {
-              positionManager.seek(startPosition);
-            }
           }));
 
   RaisedButton startButton(String label, VoidCallback onPressed) =>
