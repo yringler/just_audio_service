@@ -48,10 +48,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
 
     final subscription = context.mediaStateStream
         // The only thing we don't want to update for is stopped.
-        // stop - is tricky, because by convention stop means to reset the saved position, but
-        // currently [onStop()] is also called if user kills background service manually, eg by
-        // swiping away the notification.
-        // I opened up an issue with audio_service, for now I'll persist in the [onStop()] callback.
+        // stop - is tricky, because by convention stop means to reset the saved position.
         .where((event) =>
             event.playing ||
             event.processingState == AudioProcessingState.ready)
@@ -61,15 +58,10 @@ class PositionedAudioTask extends AudioTaskDecorater {
     context.mediaStateStream
         .where(
             (event) => event.processingState == AudioProcessingState.completed)
-        .listen((state) => onStop());
+        .listen((state) => dataManager.setPosition(
+            Position(id: context.mediaItem.id, position: Duration.zero)));
 
     await baseTask.onStart(params);
-
-    if (context.playBackState.processingState ==
-        AudioProcessingState.completed) {
-      await dataManager.setPosition(
-          Position(id: context.mediaItem.id, position: Duration.zero));
-    }
 
     IsolateNameServer.removePortNameMapping(SendPortID);
     _receivePort.close();
