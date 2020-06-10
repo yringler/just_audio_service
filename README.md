@@ -7,60 +7,23 @@ Note that initial goal is only to support a limited set of requirements, not to 
 That being said, I hope that it is a good starting point for others to base their implementations off, and PRs (or feature requests) are most welcome.
 
 # Usage
-This package has two things, a regular implementation of `BackgroundAudioTask`, and a `PositionedAudioTask` which, together with a `PositionManager` on the UI side, helps keep track of current position (no more ui lag for position sliders) and optionaly save a position (with hivedb).
-The example app uses the position abilities, which comes down to a few snippets.
+This package has two things, a regular implementation of `BackgroundAudioTask`, and a `PositionedAudioTask` which, together with a `PositionManager` on the UI side, helps keep track of current position and optionaly can save a position (with hivedb).
 Note that
-* A backing audio task is passed in
-* A position data manager, which persists the position, is passed in
-* The position data manager is optional. Don't pass it in, everything else will still work. (TODO: add a `MemoryPositionManager`, which keeps track of positions in memory, per app run)
 * If you don't want the persistance, you can just use AudioTask()
-* You can get the help with seeking (a new stream which doesn't lag with constant location updates) with just using the regular `AudioTask`
-For simpler usage, you can just use `AudioTask` in your top level audio_service `_audioPlayerTaskEntrypoint`.
-Using position data manager is more involved:
+* (TODO: add a MemoryPositionManager, which keeps track of positions in memory, per app run)
+* You can still use the `PositionManager`, which provides a stream which doesn't lag with constant location updates, with the regular `AudioTask`
+
+You can either use `AudioTask` in your top level audio_service `_audioPlayerTaskEntrypoint` or `PositionedAudioTask`
+
+Here's a sample (from the example project) of everything which you have to do to start an audio task which will persist
+position in media
 ```dart
-
-Future<IPositionDataManager> getPositionManager() async {
-  final parentFolder = await getApplicationDocumentsDirectory();
-  final hivePath = "${parentFolder.path}/hive";
-
-  return PositionDataManager(storePath: hivePath);
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<IPositionDataManager>(
-      future: getPositionManager(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
-        }
-
-        positionManager ??= PositionManager(positionDataManager: snapshot.data);
-
-        return MaterialApp(
-          title: 'Audio Service Demo',
-          theme: ThemeData(primarySwatch: Colors.blue),
-          home: AudioServiceWidget(child: MainScreen()),
-        );
-      },
-    );
-  }
-}
-
-// A simple example, if you don't want to use DI.
-// Possibly this will be available staticaly from the package in the future
-final positionManager = PositionManager(
-    positionDataManager: PositionDataManager(storePath: "hive"));
-
-...
-
 // NOTE: Your entrypoint MUST be a top-level function.
-void _audioPlayerTaskEntrypoint() async {
-  AudioServiceBackground.run(() => PositionedAudioTask(
-      audioTask: AudioTask(), positionDataManagerFactory: getPositionManager));
+void _audioPlayerTaskEntrypoint() {
+  AudioServiceBackground.run(() => PositionedAudioTask.standard());
 }
 ```
+`PositionedAudioTask` has another constructor which lets you customize the base audio task and the persistance mechanism.
 
 ### Motivation
 My initial audio BackgroundAudioTask quickly descended into a labyrinth of spaghetti code, inhabited by hosts of minotaur quick to consume any who hoped to maintain it.
