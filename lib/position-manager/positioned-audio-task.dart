@@ -75,7 +75,6 @@ class PositionedAudioTask extends AudioTaskDecorater {
     // On android we can tell the diffirence between a user requested stop
     // and the process ending e.g. through swiping away the notification, so
     // interpert stop in the traditional method of "start from begginging".
-    // TODO: test that this is called when a media is completed.
     final position = Platform.isAndroid &&
             context.playBackState.processingState !=
                 AudioProcessingState.completed
