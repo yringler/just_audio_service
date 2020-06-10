@@ -84,12 +84,10 @@ packages:
   hive:
     dependency: transitive
     description:
-      path: hive
-      ref: update-dartx-temp
-      resolved-ref: f74a05d7a9371d3b6d62d32433649a88541acf0b
-      url: "https://github.com/yringler/hive"
-    source: git
-    version: "1.4.1+2"
+      name: hive
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.4.1+1"
   http:
     dependency: transitive
     description:

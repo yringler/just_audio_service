@@ -225,20 +225,20 @@ packages:
     dependency: "direct main"
     description:
       path: hive
-      ref: update-dartx-temp
-      resolved-ref: f74a05d7a9371d3b6d62d32433649a88541acf0b
-      url: "https://github.com/yringler/hive"
+      ref: d7ee72537a3b7ce1284bcbf5ee5f86e617a4f6fc
+      resolved-ref: d7ee72537a3b7ce1284bcbf5ee5f86e617a4f6fc
+      url: "https://github.com/hivedb/hive"
     source: git
-    version: "1.4.1+2"
+    version: "1.4.1+1"
   hive_generator:
     dependency: "direct dev"
     description:
       path: hive_generator
-      ref: update-dartx-temp
-      resolved-ref: f74a05d7a9371d3b6d62d32433649a88541acf0b
-      url: "https://github.com/yringler/hive"
+      ref: d7ee72537a3b7ce1284bcbf5ee5f86e617a4f6fc
+      resolved-ref: d7ee72537a3b7ce1284bcbf5ee5f86e617a4f6fc
+      url: "https://github.com/hivedb/hive"
     source: git
-    version: "0.7.0+3"
+    version: "0.7.0+2"
   html:
     dependency: transitive
     description:
