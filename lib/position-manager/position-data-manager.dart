@@ -102,7 +102,13 @@ class HivePositionDataManager extends IPositionDataManager {
 
   Future<void> setPosition(Position position) async {
     await init();
-    await positionBox.put(position.id, position);
+
+    if (position.position != Duration.zero) {
+      await positionBox.put(position.id, position);
+    } else {
+      // No need to clutter the DB with zeros - that's the default, anyway.
+      await positionBox.delete(position.id);
+    }
   }
 
   /// Make sure we don't try to hold too many positions in memory.

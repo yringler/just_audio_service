@@ -42,6 +42,12 @@ class AudioTaskDecorater extends BackgroundAudioTask implements IContextAudioTas
   void onSetSpeed(double speed) => baseTask.onSetSpeed(speed);
 
   @override
+  void onTaskRemoved() => baseTask.onTaskRemoved();
+
+  @override
+  void onClose() => baseTask.onClose();
+
+  @override
   void onAudioFocusGained(AudioInterruption interruption) {}
   @override
   void onAudioFocusLost(AudioInterruption interruption) {}

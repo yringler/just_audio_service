@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 
@@ -68,10 +69,17 @@ class PositionedAudioTask extends AudioTaskDecorater {
   @override
   void onStop() => _onStop();
   Future<void> _onStop() async {
-    await dataManager.setPosition(Position(
-        id: context.mediaItem.id,
-        position: context.playBackState.currentPosition));
-    super.onStop();
+    // On android we can tell the diffirence between a user requested stop
+    // and the process ending e.g. through swiping away the notification, so
+    // interpert stop in the traditional method of "start from begginging".
+    // TODO: test that this is called when a media is completed.
+    final position = Platform.isAndroid &&
+            context.playBackState.processingState !=
+                AudioProcessingState.completed
+        ? Duration.zero
+        : context.playBackState.currentPosition;
+
+    await _endTestAtPosition(position);
   }
 
   @override
@@ -80,6 +88,18 @@ class PositionedAudioTask extends AudioTaskDecorater {
     final start = await dataManager.getPosition(mediaId);
     super.onPlayFromMediaId(mediaId);
     onSeekTo(start);
+  }
+
+  @override
+  void onTaskRemoved() => onClose();
+
+  @override
+  void onClose() => _endTestAtPosition(context.playBackState.currentPosition);
+
+  Future<void> _endTestAtPosition(Duration position) async {
+    await dataManager
+        .setPosition(Position(id: context.mediaItem.id, position: position));
+    super.onStop();
   }
 
   /// Send the correct response according to the message that we recieved from
