@@ -1,9 +1,10 @@
 # just_audio_service
 
-In development, but there is currently a working example project!<br>
+In beta. There is a working example.<br>
 <br>
 Intended to be a robust, well written, easy to use implementation of audio_service using just_audio.<br>
-Note that initial goal is only to support a limited set of requirements, not to be properly configurable.<br>
+Note that initial goal is only to support a limited set of requirements (i.e. mine), not to be properly configurable.
+For example, it doesn't support playlists yet, or customizing the buttons on the android notification.<br>
 That being said, I hope that it is a good starting point for others to base their implementations off, and PRs (or feature requests) are most welcome.
 
 # Usage
