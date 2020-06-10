@@ -18,6 +18,7 @@ class PositionManager {
   final BehaviorSubject<Position> _positionSubject =
       BehaviorSubject.seeded(Position(id: null, position: Duration.zero));
 
+  /// Optional. If it's set, will be used to persist the position.
   final IPositionDataManager positionDataManager;
 
   /// When a seek is requested, ignore position updates from audio_service for a little bit,
