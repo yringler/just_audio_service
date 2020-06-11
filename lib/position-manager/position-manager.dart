@@ -54,9 +54,12 @@ class PositionManager {
   Stream<Position> get positionStream => _positionSubject.stream;
 
   /// Stream of positions and states.
-  /// Also useful because it provides access to the media item id.
+  /// Also useful because it provides access to the media item.
   /// If the media whos position is changing is not currently playing, the [PositionState.state] property
   /// will be null.
+  /// Basically, this is a conveniance stream, it breaks the single responsibility pricnciple, and I'm
+  /// not making another class just for this.
+  /// Enjoy!
   Stream<PositionState> get positionStateStream =>
       Rx.combineLatest3<Position, PlaybackState, MediaItem, PositionState>(
           positionStream,
@@ -64,7 +67,8 @@ class PositionManager {
           AudioService.currentMediaItemStream,
           (position, state, mediaItem) => PositionState(
               position: position,
-              state: mediaItem.id == position.id ? state : null));
+              state: mediaItem.id == position.id ? state : null,
+              mediaItem: mediaItem.id == position.id ? mediaItem : null));
 
   /// Updates the current location in given media, for the given ID. If ID is ommited,
   /// will effect current media.
@@ -130,6 +134,7 @@ class PositionManager {
 class PositionState {
   final Position position;
   final PlaybackState state;
+  final MediaItem mediaItem;
 
-  PositionState({this.position, this.state});
+  PositionState({this.position, this.state, this.mediaItem);
 }
