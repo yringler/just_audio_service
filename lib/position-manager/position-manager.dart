@@ -53,6 +53,14 @@ class PositionManager {
   /// Stream of media position, not only of current media.
   Stream<Position> get positionStream => _positionSubject.stream;
 
+  /// Stream of positions and states.
+  /// TODO: Ensure that we don't mix states and positions from diffirent medias.
+  Stream<PositionState> get positionStateStream =>
+      Rx.combineLatest2<Position, PlaybackState, PositionState>(
+          positionStream,
+          AudioService.playbackStateStream,
+          (position, state) => PositionState(position: position, state: state));
+
   /// Updates the current location in given media, for the given ID. If ID is ommited,
   /// will effect current media.
   void seek(Duration location, {String id}) {
@@ -111,4 +119,12 @@ class PositionManager {
 
     return true;
   }
+}
+
+/// A position which keeps track of state.
+class PositionState {
+  final Position position;
+  final PlaybackState state;
+
+  PositionState({this.position, this.state});
 }
