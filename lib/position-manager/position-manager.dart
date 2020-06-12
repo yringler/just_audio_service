@@ -136,5 +136,5 @@ class PositionState {
   final PlaybackState state;
   final MediaItem mediaItem;
 
-  PositionState({this.position, this.state, this.mediaItem);
+  PositionState({this.position, this.state, this.mediaItem});
 }
