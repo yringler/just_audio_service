@@ -92,7 +92,12 @@ class HivePositionDataManager extends IPositionDataManager {
   /// Close connection to disk storage.
   /// This is done to allow a diffirent isolate access.
   Future<void> close() async {
-    await positionHive.close();
+    try {
+      await positionHive.close();
+    }
+    catch (err) {
+      print(err);
+    }
   }
 
   Future<Duration> getPosition(String id) async =>
@@ -146,7 +151,7 @@ class AudioServicePositionManager extends IPositionDataManager {
   Future<List<Position>> getPositions(List<String> ids) async {
     final sendPort =
         IsolateNameServer.lookupPortByName(PositionedAudioTask.SendPortID);
-
+ 
     if (sendPort == null) {
       return null;
     }

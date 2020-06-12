@@ -70,6 +70,9 @@ class PositionManager {
               state: mediaItem?.id == position.id ? state : null,
               mediaItem: mediaItem?.id == position.id ? mediaItem : null));
 
+  Stream<PositionState> positionStateStreamOf(String mediaId) =>
+      positionStateStream.where((state) => state.position?.id == mediaId);
+
   /// Updates the current location in given media, for the given ID. If ID is ommited,
   /// will effect current media.
   void seek(Duration location, {String id}) {
