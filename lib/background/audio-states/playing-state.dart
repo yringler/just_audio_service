@@ -73,6 +73,12 @@ class PlayingState extends MediaStateBase {
 
   @override
   Future<void> setUrl(String url) async {
+    // No need to connect if we already did.
+    // TODO: this check is in every change to ConnectingState. This should be less manual.
+    if (url == context.mediaItem.id) {
+      return;
+    }
+
     context.stateHandler = ConnectingState(context: context);
     await context.stateHandler.setUrl(url);
   }
