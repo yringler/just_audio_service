@@ -12,8 +12,6 @@ import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 import 'package:just_audio_service/position-manager/position.dart';
 
-typedef Future<IPositionDataManager> PositionDataManagerFactory();
-
 /// The background component to [PositionManager]. Decorates an audio task by persisting
 /// current media position, if it has an ID.
 class PositionedAudioTask extends AudioTaskDecorater {

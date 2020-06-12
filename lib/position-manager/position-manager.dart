@@ -67,8 +67,8 @@ class PositionManager {
           AudioService.currentMediaItemStream,
           (position, state, mediaItem) => PositionState(
               position: position,
-              state: mediaItem.id == position.id ? state : null,
-              mediaItem: mediaItem.id == position.id ? mediaItem : null));
+              state: mediaItem?.id == position.id ? state : null,
+              mediaItem: mediaItem?.id == position.id ? mediaItem : null));
 
   /// Updates the current location in given media, for the given ID. If ID is ommited,
   /// will effect current media.

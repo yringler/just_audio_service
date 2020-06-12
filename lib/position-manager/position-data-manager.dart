@@ -28,14 +28,21 @@ class PositionDataManager extends IPositionDataManager {
   final AudioServicePositionManager _serviceManager =
       AudioServicePositionManager();
 
-  PositionDataManager();
+  PositionDataManager() {
+    // Disconnect hive whenever audio state is running.
+    AudioService.playbackStateStream
+        .map((state) =>
+            (state?.processingState ?? AudioProcessingState.none) !=
+            AudioProcessingState.none)
+        .distinct()
+        .where((isAudioServiceRunning) => isAudioServiceRunning)
+        .listen((isAudioServiceRunning) {
+      _hiveManager.close();
+    });
+  }
 
   IPositionDataManager get _activeManager =>
-      AudioService.connected ? _serviceManager : _hiveManager;
-
-  Future<void> isStartingAudioService() async {
-    await _hiveManager.close();
-  }
+      AudioService.running ? _serviceManager : _hiveManager;
 
   @override
   Future<Duration> getPosition(String id) => _activeManager.getPosition(id);
@@ -86,7 +93,6 @@ class HivePositionDataManager extends IPositionDataManager {
   /// This is done to allow a diffirent isolate access.
   Future<void> close() async {
     await positionHive.close();
-    positionBox = null;
   }
 
   Future<Duration> getPosition(String id) async =>
