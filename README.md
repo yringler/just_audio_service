@@ -13,6 +13,17 @@ For example, it doesn't support
 
 That being said, I hope that it is a good starting point for others to base their implementations off, and PRs (or feature requests, or forks) are most welcome.
 
+# Installation
+This is not yet available on pub.dev, but can be used from git
+```yaml
+  just_audio_service:
+    git:
+      url: https://github.com/yringler/just_audio_service.git
+```
+
+# Setup
+See documention for [just_audio](https://github.com/ryanheise/audio_service). This plugin is currently on version 0.10.0, but will be kept up to date with the latest audio_service plugin for the foreseeable future.
+
 # Usage
 This package has two things, a regular implementation of `BackgroundAudioTask`, and a `PositionedAudioTask` which, together with a `PositionManager` on the UI side, helps keep track of current position and optionaly can save a position (with hivedb).
 Note that
