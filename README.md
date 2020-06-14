@@ -43,6 +43,10 @@ void _audioPlayerTaskEntrypoint() {
 ```
 `PositionedAudioTask` has another constructor which lets you customize the base audio task and the persistance mechanism.
 
+To use `PositionManager`: you'd want to make sure to only have one instance per app, either using provider, some other DI mechanism, or saving it to a static property.
+To take advantage of the position streams, seek via the `seek` method, not directly with `AudioService` method.
+Note that if you opt to save position, (For example, by using the `PositionedAudioTask.standard()` constructor, you can call seek on a media which isn't active, and playback for that media will start from the seeked-to position.
+
 ### Motivation
 My initial audio BackgroundAudioTask quickly descended into a labyrinth of spaghetti code, inhabited by hosts of minotaur quick to consume any who hoped to maintain it.
 
