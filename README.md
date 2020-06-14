@@ -22,7 +22,7 @@ This is not yet available on pub.dev, but can be used from git
 ```
 
 # Setup
-See documention for [just_audio](https://github.com/ryanheise/audio_service). This plugin is currently on version 0.10.0, but will be kept up to date with the latest audio_service plugin for the foreseeable future.
+See documention for [audio_service](https://github.com/ryanheise/audio_service). This plugin is currently on version 0.10.0, but will be kept up to date with the latest audio_service plugin for the foreseeable future.
 
 # Usage
 This package has two things, a regular implementation of `BackgroundAudioTask`, and a `PositionedAudioTask` which, together with a `PositionManager` on the UI side, helps keep track of current position and optionaly can save a position (with hivedb).
