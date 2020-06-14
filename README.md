@@ -4,8 +4,14 @@ In beta. There is a working example.<br>
 <br>
 Intended to be a robust, well written, easy to use implementation of audio_service using just_audio.<br>
 Note that initial goal is only to support a limited set of requirements (i.e. mine), not to be properly configurable.
-For example, it doesn't support playlists yet, or customizing the buttons on the android notification.<br>
-That being said, I hope that it is a good starting point for others to base their implementations off, and PRs (or feature requests) are most welcome.
+For example, it doesn't support 
+1. playlists
+2. customizing the buttons on the android notification.
+3. playing audio from any source other than URL
+4. setting audio metadata - album, artist, etc
+5. losing focus, that on noise callback - doesn't take advantage of a bunch of `BackgroundAudioTask` functionality
+
+That being said, I hope that it is a good starting point for others to base their implementations off, and PRs (or feature requests, or forks) are most welcome.
 
 # Usage
 This package has two things, a regular implementation of `BackgroundAudioTask`, and a `PositionedAudioTask` which, together with a `PositionManager` on the UI side, helps keep track of current position and optionaly can save a position (with hivedb).
