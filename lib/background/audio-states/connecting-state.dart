@@ -10,7 +10,9 @@ import 'package:just_audio_service/background/audio-states/playing-state.dart';
 class ConnectingState extends MediaStateBase {
   Completer<void> _completer = Completer();
 
-  ConnectingState({@required AudioContext context}) : super(context: context);
+  // This handler handles state itself.
+  ConnectingState({@required AudioContext context})
+      : super(context: context, reactToStream: false);
 
   @override
   Future<void> pause() async {}
@@ -37,8 +39,6 @@ class ConnectingState extends MediaStateBase {
       return;
     }
 
-    super.reactToStream = false;
-
     // In case we connect to diffirent media items, without playing in the middle.
     if (_completer.isCompleted) {
       _completer = Completer();
@@ -56,7 +56,9 @@ class ConnectingState extends MediaStateBase {
 
     // Notify that connecting to media.
     context.mediaItem = MediaItem(id: url, album: "lessons", title: "lesson");
-    super.setMediaState(state: AudioProcessingState.connecting, justAudioState: AudioPlaybackState.connecting);
+    super.setMediaState(
+        state: AudioProcessingState.connecting,
+        justAudioState: AudioPlaybackState.connecting);
 
     final duration = await context.mediaPlayer.setUrl(url);
 
@@ -68,11 +70,10 @@ class ConnectingState extends MediaStateBase {
     }
 
     // Notify length of media.
-    context.mediaItem =
-        context.mediaItem.copyWith(duration: duration);
-    super.setMediaState(state: AudioProcessingState.ready, justAudioState: AudioPlaybackState.stopped);
-
-    super.reactToStream = true;
+    context.mediaItem = context.mediaItem.copyWith(duration: duration);
+    super.setMediaState(
+        state: AudioProcessingState.ready,
+        justAudioState: AudioPlaybackState.stopped);
 
     _completer.complete();
   }

@@ -40,9 +40,11 @@ abstract class MediaStateBase {
   final AudioContextBase context;
 
   /// Whether media player state streams should be ignored.
-  bool reactToStream = true;
+  bool reactToStream;
 
-  MediaStateBase({this.context});
+  MediaStateBase({this.context, bool reactToStream = true}) {
+    this.reactToStream = reactToStream;
+  }
 
   /// Called by [AudioContext] whenever [AudioPlayer] raises an event.
   /// Uses [reactToStream] to ignore events if a particular [MediaStateBase] doesn't

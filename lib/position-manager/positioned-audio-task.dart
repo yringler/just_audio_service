@@ -11,6 +11,7 @@ import 'package:just_audio_service/background/icontext-audio-task.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 import 'package:just_audio_service/position-manager/position.dart';
+import 'package:just_audio_service/background/audio-context.dart';
 
 /// The background component to [PositionManager]. Decorates an audio task by persisting
 /// current media position, if it has an ID.
@@ -85,9 +86,14 @@ class PositionedAudioTask extends AudioTaskDecorater {
   @override
   void onPlayFromMediaId(String mediaId) => _onPlayFromMediaId(mediaId);
   void _onPlayFromMediaId(String mediaId) async {
-    final start = await dataManager.getPosition(mediaId);
+    final startPosition = await dataManager.getPosition(mediaId);
+
+    if (startPosition != Duration.zero) {
+      context.upcomingPlaybackSettings =
+          context.upcomingPlaybackSettings.copyWith(position: startPosition);
+    }
+
     super.onPlayFromMediaId(mediaId);
-    onSeekTo(start);
   }
 
   @override

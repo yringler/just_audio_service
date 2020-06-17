@@ -57,6 +57,11 @@ class UpcomingPlaybackSettings {
   UpcomingPlaybackSettings({@required this.position});
 }
 
+extension UpcomingPlaybackSettingsExtensions on UpcomingPlaybackSettings {
+  copyWith({Duration position}) =>
+      UpcomingPlaybackSettings(position: position ?? this?.position);
+}
+
 /// Functionality which the [MediaStateBase] classes will use to mantain state.
 abstract class AudioContextBase {
   final AudioPlayer mediaPlayer;
@@ -65,8 +70,9 @@ abstract class AudioContextBase {
 
   AudioContextBase({@required this.mediaPlayer}) {
     stateHandler = NoneState(context: this);
-    
-    mediaPlayer.playbackEventStream.listen(stateHandler.onPlaybackEvent);
+
+    mediaPlayer.playbackEventStream
+        .listen((e) => stateHandler.onPlaybackEvent(e));
   }
 
   Stream<PlaybackState> get mediaStateStream;
@@ -113,9 +119,7 @@ class AudioContext extends AudioContextBase {
   @override
   set playBackState(PlaybackState state) {
     AudioServiceBackground.setState(
-        controls: state.playing
-            ? [pauseControl]
-            : [playControl],
+        controls: state.playing ? [pauseControl] : [playControl],
         systemActions: state.actions?.toList() ?? List(),
         playing: state.playing,
         bufferedPosition: state.bufferedPosition,
