@@ -94,8 +94,7 @@ class HivePositionDataManager extends IPositionDataManager {
   Future<void> close() async {
     try {
       await positionHive.close();
-    }
-    catch (err) {
+    } catch (err) {
       print(err);
     }
   }
@@ -149,9 +148,30 @@ class AudioServicePositionManager extends IPositionDataManager {
 
   @override
   Future<List<Position>> getPositions(List<String> ids) async {
-    final sendPort =
-        IsolateNameServer.lookupPortByName(PositionedAudioTask.SendPortID);
- 
+    var sendPort;
+
+    // Wait for the send port to be available.
+    await Future.doWhile(() async {
+      sendPort =
+          IsolateNameServer.lookupPortByName(PositionedAudioTask.SendPortID);
+
+      if (sendPort != null) {
+        return false;
+      }
+
+      await Future.delayed(Duration(milliseconds: 100));
+      // Try again...
+      return true;
+    }).timeout(Duration(seconds: 2),
+        onTimeout: () async {
+          // If I make this a lambda, it's an error. This is a bit clumsy - dart
+          // should be able to do better.
+          print("error: timeout for port");
+          return false;
+        });
+
+    assert(sendPort != null);
+
     if (sendPort == null) {
       return null;
     }
