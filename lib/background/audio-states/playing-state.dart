@@ -27,7 +27,7 @@ class PlayingState extends MediaStateBase {
   @override
   Future<void> setSpeed(double speed) async {
     context.generalPlaybackSettings =
-        context.generalPlaybackSettings.copyWith(speed: speed);
+        context.generalPlaybackSettings?.copyWith(speed: speed) ?? GeneralPlaybackSettings(speed: speed);
 
     if (context.playBackState.playing) {
       await context.mediaPlayer.setSpeed(speed);
