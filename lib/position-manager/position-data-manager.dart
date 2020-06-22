@@ -61,7 +61,7 @@ class PositionDataManager extends IPositionDataManager {
 class HivePositionDataManager extends IPositionDataManager {
   static final positionHive = HiveImpl();
   static const positionBoxName = "positions";
-  static const int maxSavedPositions = 2000;
+  static const int maxSavedPositions = 200;
 
   Box<Position> positionBox;
   HivePositionDataManager();
@@ -120,12 +120,13 @@ class HivePositionDataManager extends IPositionDataManager {
       await positionBox.put(position.id.limitFromEnd(255), position);
     } else {
       // No need to clutter the DB with zeros - that's the default, anyway.
-      await positionBox.delete(position.id);
+      await positionBox.delete(position.id.limitFromEnd(255));
     }
   }
 
   /// Make sure we don't try to hold too many positions in memory.
   Future<void> _constrainBoxSize() async {
+    // E.g: There are 3 items, we're aloud max of 2, we need to delete 1.
     int amountPositionsToDelete = positionBox.length - maxSavedPositions;
 
     if (amountPositionsToDelete < 1) {
@@ -133,9 +134,8 @@ class HivePositionDataManager extends IPositionDataManager {
     }
 
     final positions = positionBox.values.toList();
-    positions.sort((p1, p2) =>
-        p2.createdDate.millisecondsSinceEpoch -
-        p1.createdDate.millisecondsSinceEpoch);
+
+    positions.sort((p1, p2) => p1.createdDate.compareTo(p2.createdDate));
     final positionsToDelete = positions.take(amountPositionsToDelete);
 
     await Stream.fromFutures(
