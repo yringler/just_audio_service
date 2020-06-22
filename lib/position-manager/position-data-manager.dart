@@ -7,6 +7,7 @@ import 'package:hive/src/hive_impl.dart';
 import 'package:just_audio_service/position-manager/position.dart';
 import 'package:just_audio_service/position-manager/positioned-audio-task.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:dart_extensions/dart_extensions.dart';
 
 /// Save position, and get it back.
 abstract class IPositionDataManager {
@@ -104,9 +105,11 @@ class HivePositionDataManager extends IPositionDataManager {
 
   Future<List<Position>> getPositions(List<String> ids) async {
     await init();
+    // Take only last 255 charachters because of HiveDB limits
     return ids
         .map((id) =>
-            positionBox.get(id) ?? Position(id: id, position: Duration.zero))
+            positionBox.get(id.limitFromEnd(255)) ??
+            Position(id: id, position: Duration.zero))
         .toList();
   }
 
@@ -114,7 +117,7 @@ class HivePositionDataManager extends IPositionDataManager {
     await init();
 
     if (position.position != Duration.zero) {
-      await positionBox.put(position.id, position);
+      await positionBox.put(position.id.limitFromEnd(255), position);
     } else {
       // No need to clutter the DB with zeros - that's the default, anyway.
       await positionBox.delete(position.id);
@@ -162,13 +165,12 @@ class AudioServicePositionManager extends IPositionDataManager {
       await Future.delayed(Duration(milliseconds: 100));
       // Try again...
       return true;
-    }).timeout(Duration(seconds: 2),
-        onTimeout: () async {
-          // If I make this a lambda, it's an error. This is a bit clumsy - dart
-          // should be able to do better.
-          print("error: timeout for port");
-          return false;
-        });
+    }).timeout(Duration(seconds: 2), onTimeout: () async {
+      // If I make this a lambda, it's an error. This is a bit clumsy - dart
+      // should be able to do better.
+      print("error: timeout for port");
+      return false;
+    });
 
     assert(sendPort != null);
 
