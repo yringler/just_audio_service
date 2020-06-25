@@ -7,6 +7,8 @@ it's use if at least one of the following is true:
 1. You are comfortable fixing any bugs which may bug you, or making PRs for any features which it doesn't have yet.
 1. You want to fork this entirely and make you're own, better plugin
 
+It is because of these limitations that I haven't published this to pub.dev yet.
+
 # Summary
 In beta, and in production use (in an app of mine).<br>
 <br>
