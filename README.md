@@ -1,6 +1,14 @@
 # just_audio_service
 
-In beta. There is a working example.<br>
+# :warning: Disclaimer :warning:
+As is enumerated below and in the project issues, this plugin doesn't support some basic things, and is not sufficiant for most use cases. I can only reccomend
+it's use if at least one of the following is true:
+1. You are aware and OK with the limitations, 
+1. You are comfortable fixing any bugs which may bug you, or making PRs for any features which it doesn't have yet.
+1. You want to fork this entirely and make you're own, better plugin
+
+# Summary
+In beta, and in production use (in an app of mine).<br>
 <br>
 Intended to be a robust, well written, easy to use implementation of audio_service using just_audio.<br>
 Note that initial goal is only to support a limited set of requirements (i.e. mine), not to be properly configurable.
