@@ -3,7 +3,7 @@
 # :warning: Disclaimer :warning:
 As is enumerated below and in the project issues, this plugin doesn't support some basic things, and is not sufficiant for most use cases. I can only recommend
 it's use if at least one of the following is true:
-1. You are aware of and OK with the limitations, are comfortable fixing any bugs which may bug you
+1. You are aware of and OK with the limitations, and are comfortable fixing any bugs which may bug you
 1. You are willing to make PRs for any features which it doesn't have yet.
 1. You want to fork this entirely and make you're own, better plugin
 
