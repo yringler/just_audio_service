@@ -13,25 +13,13 @@ dependencies:
   audio_service: ^0.10.0
   just_audio: "0.2.0"
   rxdart: ^0.24.1
-  hive: ^1.4.1+1
+  hive: ^1.4.2
   path_provider: ^1.4.0
   dart_extensions: ^1.0.1
-
-dependency_overrides:
-    hive:
-      git:
-        url: https://github.com/hivedb/hive
-        path: hive
-        ref: d7ee72537a3b7ce1284bcbf5ee5f86e617a4f6fc
-    hive_generator:
-      git:
-        url: https://github.com/hivedb/hive
-        path: hive_generator
-        ref: d7ee72537a3b7ce1284bcbf5ee5f86e617a4f6fc
   
 dev_dependencies:
     build_runner: ^1.10.0
-    hive_generator: ^0.7.0+2
+    hive_generator: ^0.7.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
