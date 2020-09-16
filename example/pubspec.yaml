@@ -22,7 +22,7 @@ dependencies:
   
   just_audio_service:
     path: ../
-  audio_service: ^0.10.0
+  audio_service: ^0.15.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
