@@ -69,8 +69,9 @@ class PositionedAudioTask extends AudioTaskDecorater {
   }
 
   @override
-  void onStop() => _onStop();
-  Future<void> _onStop() async {
+  // super is called in _endTaskAtPosition
+  // ignore: must_call_super
+  Future<void> onStop() async {
     // On android we can tell the diffirence between a user requested stop
     // and the process ending e.g. through swiping away the notification, so
     // interpert stop in the traditional method of "start from begginging".
@@ -84,8 +85,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
   }
 
   @override
-  void onPlayFromMediaId(String mediaId) => _onPlayFromMediaId(mediaId);
-  void _onPlayFromMediaId(String mediaId) async {
+  Future<void> onPlayFromMediaId(String mediaId) async {
     final startPosition = await dataManager.getPosition(mediaId);
 
     if (startPosition != Duration.zero) {
@@ -97,10 +97,10 @@ class PositionedAudioTask extends AudioTaskDecorater {
   }
 
   @override
-  void onTaskRemoved() => onClose();
+  Future<void> onTaskRemoved() => onClose();
 
   @override
-  void onClose() => _endTaskAtPosition(context.playBackState.currentPosition);
+  Future<void> onClose() => _endTaskAtPosition(context.playBackState.currentPosition);
 
   Future<void> _endTaskAtPosition(Duration position) async {
     await dataManager

@@ -58,7 +58,7 @@ class ConnectingState extends MediaStateBase {
     context.mediaItem = MediaItem(id: url, album: "lessons", title: "lesson");
     super.setMediaState(
         state: AudioProcessingState.connecting,
-        justAudioState: AudioPlaybackState.connecting);
+        justAudioState: ProcessingState.loading);
 
     final duration = await context.mediaPlayer.setUrl(url);
 
@@ -73,7 +73,7 @@ class ConnectingState extends MediaStateBase {
     context.mediaItem = context.mediaItem.copyWith(duration: duration);
     super.setMediaState(
         state: AudioProcessingState.ready,
-        justAudioState: AudioPlaybackState.stopped);
+        justAudioState: ProcessingState.ready);
 
     _completer.complete();
   }

@@ -6,35 +6,43 @@ import 'package:just_audio_service/background/audio-context.dart';
 /// Deals with state for a given state.
 abstract class MediaStateBase {
   static const stateToStateMap = {
-    AudioPlaybackState.connecting: AudioProcessingState.connecting,
-    AudioPlaybackState.none: AudioProcessingState.none,
-    AudioPlaybackState.paused: AudioProcessingState.ready,
-    AudioPlaybackState.playing: AudioProcessingState.ready,
-    AudioPlaybackState.completed: AudioProcessingState.completed,
-    AudioPlaybackState.stopped: AudioProcessingState.stopped
+    ProcessingState.loading: AudioProcessingState.connecting,
+    ProcessingState.none: AudioProcessingState.none,
+    ProcessingState.completed: AudioProcessingState.completed,
+    ProcessingState.ready: AudioProcessingState.ready,
+    ProcessingState.buffering: AudioProcessingState.buffering
   };
 
+  static Set<MediaAction> getAction(ProcessingState state, bool playing) {
+    switch (state) {
+      case ProcessingState.loading:
+      case ProcessingState.none:
+      case ProcessingState.completed:
+        return {MediaAction.playFromMediaId};
+      default:
+        return stateToActionsMap[state][playing];
+    }
+  }
+
   static const stateToActionsMap = {
-    AudioPlaybackState.connecting: {MediaAction.playFromMediaId},
-    AudioPlaybackState.none: {MediaAction.playFromMediaId},
-    AudioPlaybackState.paused: {
-      MediaAction.playPause,
-      MediaAction.stop,
-      MediaAction.playFromMediaId,
-      MediaAction.fastForward,
-      MediaAction.rewind,
-      MediaAction.seekTo
+    ProcessingState.ready: const {
+      true: {
+        MediaAction.playPause,
+        MediaAction.stop,
+        MediaAction.playFromMediaId,
+        MediaAction.fastForward,
+        MediaAction.rewind,
+        MediaAction.seekTo
+      },
+      false: const {
+        MediaAction.playPause,
+        MediaAction.stop,
+        MediaAction.playFromMediaId,
+        MediaAction.fastForward,
+        MediaAction.rewind,
+        MediaAction.seekTo
+      }
     },
-    AudioPlaybackState.playing: {
-      MediaAction.playPause,
-      MediaAction.stop,
-      MediaAction.playFromMediaId,
-      MediaAction.fastForward,
-      MediaAction.rewind,
-      MediaAction.seekTo
-    },
-    AudioPlaybackState.completed: {MediaAction.playFromMediaId},
-    AudioPlaybackState.stopped: {MediaAction.playFromMediaId}
   };
 
   final AudioContextBase context;
@@ -49,16 +57,20 @@ abstract class MediaStateBase {
   /// Called by [AudioContext] whenever [AudioPlayer] raises an event.
   /// Uses [reactToStream] to ignore events if a particular [MediaStateBase] doesn't
   /// want that event to be handled for whatever reason.
-  void onPlaybackEvent(AudioPlaybackEvent event) {
+  void onPlaybackEvent(PlaybackEvent event) {
     if (reactToStream) {
       context.playBackState = PlaybackState(
-          processingState: stateToStateMap[event.state],
-          actions: stateToActionsMap[event.state],
-          position: event.position,
-          updateTime: event.updateTime,
-          playing: event.state == AudioPlaybackState.playing,
+          processingState: stateToStateMap[event.processingState],
+          // TODO: playing should come from a stream.
+          actions:
+              getAction(event.processingState, context.mediaPlayer.playing),
+          position: event.updatePosition,
+          updateTime:
+              Duration(milliseconds: event.updateTime.millisecondsSinceEpoch),
+          playing: context.mediaPlayer.playing &&
+              event.processingState == ProcessingState.ready,
           bufferedPosition: event.bufferedPosition,
-          speed: event.speed);
+          speed: context.mediaPlayer.speed);
     }
   }
 
@@ -79,7 +91,7 @@ abstract class MediaStateBase {
 
   void setMediaState(
       {@required AudioProcessingState state,
-      @required AudioPlaybackState justAudioState,
+      @required ProcessingState justAudioState,
       Duration position}) {
     // I put in this null check while trying to figure out why the wrong icon was showing up
     // in the notification. This ended up having nothing to do with it, but possibly is a good idea?
@@ -92,13 +104,15 @@ abstract class MediaStateBase {
 
     context.playBackState = PlaybackState(
         processingState: state,
-        actions: MediaStateBase.stateToActionsMap[justAudioState],
+        // TODO: playing should come from stream.
+        actions: getAction(justAudioState, context.mediaPlayer.playing),
         position: position,
         updateTime:
             Duration(milliseconds: DateTime.now().millisecondsSinceEpoch),
         speed: context.generalPlaybackSettings?.speed ?? 1,
-        playing:
-            context.mediaPlayer.playbackState == AudioPlaybackState.playing,
+        // TODO: playing should come from stream.
+        playing: justAudioState == ProcessingState.ready &&
+            context.mediaPlayer.playing,
         bufferedPosition: context.mediaPlayer.playbackEvent.bufferedPosition);
   }
 

@@ -1,98 +1,69 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/icontext-audio-task.dart';
 
 class AudioTask extends BackgroundAudioTask implements IContextAudioTask {
   final AudioContext context = AudioContext();
-  final Completer _completer = Completer();
 
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
     // This will be changed when we support playlists.
     // Then, on media completion we'll check if there's another file to play.
-    context.mediaPlayer.playbackStateStream
-        .where((state) => state == AudioPlaybackState.completed)
+    context.mediaPlayer.playerStateStream
+        .where((state) => state.processingState == ProcessingState.completed)
         .listen((_) => _dispose());
 
-    await _completer.future;
+    final session = await AudioSession.instance;
+    session.configure(AudioSessionConfiguration.speech());
   }
 
   @override
-  void onStop() => _stop();
-  void _stop() async {
+  // (calls super in dispose)
+  // ignore: must_call_super
+  Future<void> onStop() async {
     await context.stateHandler.stop();
     await _dispose();
   }
 
   @override
-  void onPause() => context.stateHandler.pause();
+  Future<void> onPause() => context.stateHandler.pause();
 
   @override
-  void onPlay() => context.stateHandler.play();
+  Future<void> onPlay() => context.stateHandler.play();
 
   @override
-  void onPlayFromMediaId(String mediaId) => _onPlayFromMediaId(mediaId);
-  void _onPlayFromMediaId(String mediaId) async {
+  Future<void> onPlayFromMediaId(String mediaId) async {
     final future = context.stateHandler.setUrl(mediaId);
     context.stateHandler.play();
     await future;
   }
 
   @override
-  void onFastForward() =>
+  Future<void> onFastForward() =>
       onSeekTo((context.playBackState?.currentPosition ?? Duration.zero) +
           Duration(seconds: 15));
 
   @override
-  void onRewind() =>
+  Future<void> onRewind() =>
       onSeekTo((context.playBackState?.currentPosition ?? Duration.zero) -
           Duration(seconds: 15));
 
   @override
-  void onSeekTo(Duration position) {
-    context.stateHandler.seek(position);
-  }
+  Future<void> onSeekTo(Duration position) =>
+      context.stateHandler.seek(position);
 
   @override
   Future<dynamic> onCustomAction(String name, dynamic arguments) async {}
 
   Future<void> _dispose() async {
     await context.mediaPlayer.dispose();
-    if (!_completer.isCompleted) {
-        _completer.complete();
-    }
+    await super.onStop();
   }
 
-    @override
-  void onSetSpeed(double speed) => context.stateHandler.setSpeed(speed);
-
   @override
-  void onAudioFocusGained(AudioInterruption interruption) {}
-  @override
-  void onAudioFocusLost(AudioInterruption interruption) {}
-  @override
-  void onAudioBecomingNoisy() {}
-  @override
-  void onClick(MediaButton button) {}
-  @override
-  void onPrepare() {}
-  @override
-  void onPrepareFromMediaId(String mediaId) {}
-  @override
-  void onAddQueueItem(MediaItem mediaItem) {}
-  @override
-  void onAddQueueItemAt(MediaItem mediaItem, int index) {}
-  @override
-  void onRemoveQueueItem(MediaItem mediaItem) {}
-  @override
-  void onSkipToNext() {}
-  @override
-  void onSkipToPrevious() {}
-  @override
-  void onSkipToQueueItem(String mediaId) {}
-  @override
-  void onSetRating(Rating rating, Map<dynamic, dynamic> extras) {}
+  Future<void> onSetSpeed(double speed) => context.stateHandler.setSpeed(speed);
 }
