@@ -19,7 +19,6 @@ For example, it doesn't support
 2. customizing the buttons on the android notification.
 3. playing audio from any source other than URL
 4. setting audio metadata - album, artist, etc
-5. losing focus, that on noise callback - doesn't take advantage of a bunch of `BackgroundAudioTask` functionality
 
 That being said, I hope that it is a good starting point for others to base their implementations off, and PRs (or feature requests, or forks) are most welcome.
 

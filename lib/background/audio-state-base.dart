@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
@@ -27,7 +25,7 @@ abstract class MediaStateBase {
   }
 
   static const stateToActionsMap = {
-    ProcessingState.ready: {
+    ProcessingState.ready: const {
       true: {
         MediaAction.playPause,
         MediaAction.stop,
@@ -36,7 +34,7 @@ abstract class MediaStateBase {
         MediaAction.rewind,
         MediaAction.seekTo
       },
-      false: {
+      false: const {
         MediaAction.playPause,
         MediaAction.stop,
         MediaAction.playFromMediaId,

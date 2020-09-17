@@ -3,10 +3,11 @@ import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/icontext-audio-task.dart';
 
 /// Supports mixing and matching audio tasks
-class AudioTaskDecorater extends BackgroundAudioTask implements IContextAudioTask {
+class AudioTaskDecorater extends BackgroundAudioTask
+    implements IContextAudioTask {
   final IContextAudioTask baseTask;
 
-    @override
+  @override
   AudioContext get context => baseTask.context;
 
   AudioTaskDecorater({this.baseTask});
@@ -15,62 +16,38 @@ class AudioTaskDecorater extends BackgroundAudioTask implements IContextAudioTas
   Future<void> onStart(Map<String, dynamic> params) => baseTask.onStart(params);
 
   @override
-  void onStop() => baseTask.onStop();
+  // (base task is responsible to call super.onStop())
+  // ignore: must_call_super
+  Future<void> onStop() => baseTask.onStop();
 
   @override
-  void onPause() => baseTask.onPause();
+  Future<void> onPause() => baseTask.onPause();
 
   @override
-  void onPlay() => baseTask.onPlay();
+  Future<void> onPlay() => baseTask.onPlay();
 
   @override
-  void onPlayFromMediaId(String mediaId) => baseTask.onPlayFromMediaId(mediaId);
+  Future<void> onPlayFromMediaId(String mediaId) =>
+      baseTask.onPlayFromMediaId(mediaId);
 
   @override
-  void onFastForward() => baseTask.onFastForward();
+  Future<void> onFastForward() => baseTask.onFastForward();
 
   @override
-  void onRewind() => baseTask.onRewind();
+  Future<void> onRewind() => baseTask.onRewind();
 
   @override
-  void onSeekTo(Duration position) => baseTask.onSeekTo(position);
+  Future<void> onSeekTo(Duration position) => baseTask.onSeekTo(position);
   @override
   Future<dynamic> onCustomAction(String name, dynamic arguments) =>
       baseTask.onCustomAction(name, arguments);
 
   @override
-  void onSetSpeed(double speed) => baseTask.onSetSpeed(speed);
+  Future<void> onSetSpeed(double speed) => baseTask.onSetSpeed(speed);
 
   @override
-  void onTaskRemoved() => baseTask.onTaskRemoved();
+  Future<void> onTaskRemoved() => baseTask.onTaskRemoved();
 
   @override
-  void onClose() => baseTask.onClose();
-
-  @override
-  void onAudioFocusGained(AudioInterruption interruption) {}
-  @override
-  void onAudioFocusLost(AudioInterruption interruption) {}
-  @override
-  void onAudioBecomingNoisy() {}
-  @override
-  void onClick(MediaButton button) {}
-  @override
-  void onPrepare() {}
-  @override
-  void onPrepareFromMediaId(String mediaId) {}
-  @override
-  void onAddQueueItem(MediaItem mediaItem) {}
-  @override
-  void onAddQueueItemAt(MediaItem mediaItem, int index) {}
-  @override
-  void onRemoveQueueItem(MediaItem mediaItem) {}
-  @override
-  void onSkipToNext() {}
-  @override
-  void onSkipToPrevious() {}
-  @override
-  void onSkipToQueueItem(String mediaId) {}
-  @override
-  void onSetRating(Rating rating, Map<dynamic, dynamic> extras) {}
+  Future<void> onClose() => baseTask.onClose();
 }

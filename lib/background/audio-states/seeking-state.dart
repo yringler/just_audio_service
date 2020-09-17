@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/audio-state-base.dart';
 import 'package:just_audio_service/background/audio-states/connecting-state.dart';
@@ -56,7 +57,7 @@ class SeekingState extends MediaStateBase {
     // We're trying to get to that spot.
     setMediaState(
         state: basicState,
-        justAudioState: context.mediaPlayer.playbackState,
+        justAudioState: context.mediaPlayer.playerState.processingState,
         position: position);
 
     // Don't await. I'm not sure if it will complete before or after it's finished seeking,
@@ -66,16 +67,18 @@ class SeekingState extends MediaStateBase {
 
     final reachedPositionState = await context.mediaPlayer.playbackEventStream
         .firstWhere(
-          (event) => event.position == position,
+          (event) => event.updatePosition == position,
           orElse: () => null,
         )
         .timeout(Duration(milliseconds: 250), onTimeout: () => null);
 
     if (didAbandonSeek) return;
 
-    if (reachedPositionState?.buffering ?? false) {
+    if ((reachedPositionState?.processingState == ProcessingState.buffering) ??
+        false) {
       await context.mediaPlayer.playbackEventStream
-          .firstWhere((event) => !event.buffering)
+          .firstWhere(
+              (event) => event.processingState != ProcessingState.buffering)
           .timeout(Duration(milliseconds: 250), onTimeout: () => null);
     }
 
@@ -88,8 +91,8 @@ class SeekingState extends MediaStateBase {
     // We made it to wanted place in media.
     setMediaState(
         state:
-            MediaStateBase.stateToStateMap[context.mediaPlayer.playbackState],
-        justAudioState: context.mediaPlayer.playbackState,
+            MediaStateBase.stateToStateMap[context.mediaPlayer.playerState.processingState],
+        justAudioState: context.mediaPlayer.processingState,
         position: position);
 
     // Set the state handler before calling complete() on doneSeeking.

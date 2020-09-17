@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/audio-state-base.dart';
 import 'package:just_audio_service/background/audio-states/connecting-state.dart';
@@ -12,11 +11,7 @@ class PlayingState extends MediaStateBase {
   PlayingState({@required AudioContext context}) : super(context: context);
 
   @override
-  Future<void> pause() async {
-    if (context.mediaPlayer.playbackState == AudioPlaybackState.playing) {
-      await context.mediaPlayer.pause();
-    }
-  }
+  Future<void> pause() => context.mediaPlayer.pause();
 
   @override
   Future<void> seek(Duration position) async {
