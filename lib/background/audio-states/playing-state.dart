@@ -5,7 +5,6 @@ import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/audio-state-base.dart';
 import 'package:just_audio_service/background/audio-states/connecting-state.dart';
 import 'package:just_audio_service/background/audio-states/seeking-state.dart';
-import 'package:just_audio_service/background/audio-states/stopped-state.dart';
 
 class PlayingState extends MediaStateBase {
   PlayingState({@required AudioContext context}) : super(context: context);
@@ -21,21 +20,11 @@ class PlayingState extends MediaStateBase {
 
   @override
   Future<void> setSpeed(double speed) async {
-    context.generalPlaybackSettings =
-        context.generalPlaybackSettings?.copyWith(speed: speed) ?? GeneralPlaybackSettings(speed: speed);
+    await super.setSpeed(speed);
 
     if (context.playBackState.playing) {
       await context.mediaPlayer.setSpeed(speed);
     }
-
-    // There shouldn't be a need to explicitly update the audio_service state here, as just_audio
-    // should trigger an event when speed is changed.
-  }
-
-  @override
-  Future<void> stop() async {
-    context.stateHandler = StoppedState(context: context);
-    await context.stateHandler.stop();
   }
 
   @override

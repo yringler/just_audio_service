@@ -25,7 +25,7 @@ abstract class IPositionDataManager {
 /// If the audio task is running, interacts with it to get/set postions.
 /// Otherwise, uses disk.
 class PositionDataManager extends IPositionDataManager {
-  final HivePositionDataManager _hiveManager = HivePositionDataManager();
+  HivePositionDataManager _hiveManager;
   final AudioServicePositionManager _serviceManager =
       AudioServicePositionManager();
 
@@ -38,12 +38,14 @@ class PositionDataManager extends IPositionDataManager {
         .distinct()
         .where((isAudioServiceRunning) => isAudioServiceRunning)
         .listen((isAudioServiceRunning) {
-      _hiveManager.close();
+      _hiveManager?.close();
+      _hiveManager = null;
     });
   }
 
-  IPositionDataManager get _activeManager =>
-      AudioService.running ? _serviceManager : _hiveManager;
+  IPositionDataManager get _activeManager => AudioService.running
+      ? _serviceManager
+      : _hiveManager ??= HivePositionDataManager();
 
   @override
   Future<Duration> getPosition(String id) => _activeManager.getPosition(id);

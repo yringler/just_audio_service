@@ -13,12 +13,15 @@ extension PlaybackStateExtensions on PlaybackState {
             : DateTime.now().millisecondsSinceEpoch);
 
     return PlaybackState(
-        actions: actions ?? this.actions,
-        processingState: processingState ?? this.processingState,
-        position: position ?? this.position,
-        speed: speed ?? this.speed,
-        updateTime: stateUpdateTime,
-        playing: this.playing,
-        bufferedPosition: this.bufferedPosition);
+      actions: actions ?? this.actions,
+      processingState: processingState ?? this.processingState,
+      position: position ?? this.position,
+      speed: speed ?? this.speed,
+      updateTime: stateUpdateTime,
+      playing: this.playing,
+      bufferedPosition: this.bufferedPosition,
+      repeatMode: this.repeatMode,
+      shuffleMode: this.shuffleMode,
+    );
   }
 }
