@@ -7,7 +7,6 @@ import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/audio-state-base.dart';
 import 'package:just_audio_service/background/audio-states/connecting-state.dart';
 import 'package:just_audio_service/background/audio-states/playing-state.dart';
-import 'package:just_audio_service/background/audio-states/stopped-state.dart';
 
 class SeekingState extends MediaStateBase {
   /// In case a seek is requested in the middle of another, this state isn't
@@ -65,22 +64,23 @@ class SeekingState extends MediaStateBase {
     // TODO: This section could use some work.
     await context.mediaPlayer.seek(position);
 
-    final reachedPositionState = await context.mediaPlayer.playbackEventStream
-        .firstWhere(
-          (event) => event.updatePosition == position,
-          orElse: () => null,
-        )
-        .timeout(Duration(milliseconds: 250), onTimeout: () => null);
+    // TODO :remove commented out code, update previous comment.
+    // final reachedPositionState = await context.mediaPlayer.playbackEventStream
+    //     .firstWhere(
+    //       (event) => event.updatePosition == position,
+    //       orElse: () => null,
+    //     )
+    //     .timeout(Duration(milliseconds: 250), onTimeout: () => null);
 
     if (didAbandonSeek) return;
 
-    if ((reachedPositionState?.processingState == ProcessingState.buffering) ??
-        false) {
-      await context.mediaPlayer.playbackEventStream
-          .firstWhere(
-              (event) => event.processingState != ProcessingState.buffering)
-          .timeout(Duration(milliseconds: 250), onTimeout: () => null);
-    }
+    // if ((reachedPositionState?.processingState == ProcessingState.buffering) ??
+    //     false) {
+    //   await context.mediaPlayer.playbackEventStream
+    //       .firstWhere(
+    //           (event) => event.processingState != ProcessingState.buffering)
+    //       .timeout(Duration(milliseconds: 250), onTimeout: () => null);
+    // }
 
     --numSeeking;
 
@@ -117,11 +117,5 @@ class SeekingState extends MediaStateBase {
 
     context.stateHandler = ConnectingState(context: context);
     await context.stateHandler.setUrl(url);
-  }
-
-  @override
-  Future<void> stop() async {
-    context.stateHandler = StoppedState(context: context);
-    await context.stateHandler.stop();
   }
 }

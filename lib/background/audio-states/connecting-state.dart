@@ -19,10 +19,9 @@ class ConnectingState extends MediaStateBase {
 
   @override
   Future<void> seek(Duration position) async =>
+  // TODO: This should also update the client position (instead of just relying on
+  // the position manager)
       super.setFutureSeekValue(position);
-
-  @override
-  Future<void> stop() async {}
 
   @override
   Future<void> play() async {
@@ -56,9 +55,10 @@ class ConnectingState extends MediaStateBase {
 
     // Notify that connecting to media.
     context.mediaItem = MediaItem(id: url, album: "lessons", title: "lesson");
-    super.setMediaState(
-        state: AudioProcessingState.connecting,
-        justAudioState: ProcessingState.loading);
+    // TODO: Delete commented out code.
+    // super.setMediaState(
+    //     state: AudioProcessingState.connecting,
+    //     justAudioState: ProcessingState.loading);
 
     final duration = await context.mediaPlayer.setUrl(url);
 
@@ -70,10 +70,13 @@ class ConnectingState extends MediaStateBase {
     }
 
     // Notify length of media.
+    // TODO: Provide way to client to specify duration in media item if
+    // it's already known.
     context.mediaItem = context.mediaItem.copyWith(duration: duration);
-    super.setMediaState(
-        state: AudioProcessingState.ready,
-        justAudioState: ProcessingState.ready);
+
+    // super.setMediaState(
+    //     state: AudioProcessingState.ready,
+    //     justAudioState: ProcessingState.ready);
 
     _completer.complete();
   }
