@@ -28,6 +28,8 @@ class PositionedAudioTask extends AudioTaskDecorater {
   /// Here, we keep track of when things are ready. This is awaited in [_answerPortMessage(message)].
   final Completer<void> _readyToAnswerMessages = Completer();
 
+  StreamSubscription subscription;
+
   PositionedAudioTask({@required IContextAudioTask audioTask, this.dataManager})
       : super(baseTask: audioTask) {
     IsolateNameServer.removePortNameMapping(SendPortID);
@@ -42,10 +44,9 @@ class PositionedAudioTask extends AudioTaskDecorater {
 
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
-    await dataManager.init();
     _readyToAnswerMessages.complete();
 
-    final subscription = context.mediaStateStream
+    subscription = context.mediaStateStream
         // The only thing we don't want to update for is stopped.
         // stop - is tricky, because by convention stop means to reset the saved position.
         .where((event) =>
@@ -59,13 +60,6 @@ class PositionedAudioTask extends AudioTaskDecorater {
             (event) => event.processingState == AudioProcessingState.completed)
         .listen((state) => dataManager.setPosition(
             Position(id: context.mediaItem.id, position: Duration.zero)));
-
-    await baseTask.onStart(params);
-
-    IsolateNameServer.removePortNameMapping(SendPortID);
-    _receivePort.close();
-    subscription.cancel();
-    await dataManager.close();
   }
 
   @override
@@ -105,7 +99,14 @@ class PositionedAudioTask extends AudioTaskDecorater {
   Future<void> _endTaskAtPosition(Duration position) async {
     await dataManager
         .setPosition(Position(id: context.mediaItem.id, position: position));
-    super.onStop();
+
+        IsolateNameServer.removePortNameMapping(SendPortID);
+    _receivePort.close();
+    subscription.cancel();
+    await dataManager.close();
+
+
+    await super.onStop();
   }
 
   /// Send the correct response according to the message that we recieved from

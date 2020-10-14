@@ -65,35 +65,39 @@ class HivePositionDataManager extends IPositionDataManager {
   static const positionBoxName = "positions";
   static const int maxSavedPositions = 200;
 
-  Box<Position> positionBox;
   HivePositionDataManager();
+
+  Future<Box<Position>> getPositionBox() async {
+    final box = await positionHive.openBox<Position>(positionBoxName);
+
+    assert(box.isOpen, 'How can it not be open??');
+
+    return box;
+  }
 
   /// Connect to disk storage.
   @override
-  Future<void> init() async {
+  Future<Box<Position>> init() async {
     if (positionHive.isBoxOpen(positionBoxName)) {
-      return;
+      return await getPositionBox();
     } else {
-      try {
-        final hivePath = await getApplicationDocumentsDirectory();
+      final hivePath = await getApplicationDocumentsDirectory();
 
-        positionHive.init("${hivePath.path}/just_audio_service_hive");
+      positionHive.init("${hivePath.path}/just_audio_service_hive");
+
+      if (!positionHive.isAdapterRegistered(0)) {
         positionHive.registerAdapter(PositionAdapter());
-      } catch (ex) {
-        print("Error opening hive: position");
-        print(ex);
       }
     }
 
-    positionBox = await positionHive.openBox<Position>(positionBoxName);
-
-    await _constrainBoxSize();
+    final box = await getPositionBox();
+    await _constrainBoxSize(box);
+    return box;
   }
-
-  @override
 
   /// Close connection to disk storage.
   /// This is done to allow a diffirent isolate access.
+  @override
   Future<void> close() async {
     try {
       await positionHive.close();
@@ -106,7 +110,7 @@ class HivePositionDataManager extends IPositionDataManager {
       (await getPositions([id]))[0].position;
 
   Future<List<Position>> getPositions(List<String> ids) async {
-    await init();
+    final positionBox = await init();
     // Take only last 255 charachters because of HiveDB limits
     return ids
         .map((id) =>
@@ -116,7 +120,7 @@ class HivePositionDataManager extends IPositionDataManager {
   }
 
   Future<void> setPosition(Position position) async {
-    await init();
+    final positionBox = await init();
 
     if (position.position != Duration.zero) {
       await positionBox.put(position.id.limitFromEnd(255), position);
@@ -127,7 +131,7 @@ class HivePositionDataManager extends IPositionDataManager {
   }
 
   /// Make sure we don't try to hold too many positions in memory.
-  Future<void> _constrainBoxSize() async {
+  Future<void> _constrainBoxSize(Box<Position> positionBox) async {
     // E.g: There are 3 items, we're aloud max of 2, we need to delete 1.
     int amountPositionsToDelete = positionBox.length - maxSavedPositions;
 
