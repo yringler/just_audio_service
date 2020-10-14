@@ -26,7 +26,7 @@ class StoppedState extends MediaStateBase {
     // state of position zero. To work around that, we always ignore the stop state
     // in the stream, and handle it manually here. Really, there should be a way
     // to diffirentiate.
-    setMediaState(
+    await setMediaState(
         state: AudioProcessingState.stopped,
         justAudioState: ProcessingState.none,
         position: currentPosition);

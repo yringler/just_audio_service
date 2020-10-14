@@ -73,9 +73,9 @@ abstract class MediaStateBase {
   /// Called by [AudioContext] whenever [AudioPlayer] raises an event.
   /// Uses [reactToStream] to ignore events if a particular [MediaStateBase] doesn't
   /// want that event to be handled for whatever reason.
-  void onPlaybackEvent(PlaybackEvent event) {
+  void onPlaybackEvent(PlaybackEvent event) async {
     if (reactToStream) {
-      context.playBackState = PlaybackState(
+      await context.setPlaybackState(PlaybackState(
           processingState: stateToStateMap[event.processingState],
           // TODO: playing should come from a stream.
           actions:
@@ -85,7 +85,7 @@ abstract class MediaStateBase {
               Duration(milliseconds: event.updateTime.millisecondsSinceEpoch),
           playing: context.mediaPlayer.playing,
           bufferedPosition: event.bufferedPosition,
-          speed: context.mediaPlayer.speed);
+          speed: context.mediaPlayer.speed));
     }
   }
 
@@ -110,20 +110,22 @@ abstract class MediaStateBase {
 
     // Even if nothing is playing right now, the UI should know what the speed
     // will be (eventually).
-    context.playBackState = context.playBackState.copyWith(speed: speed);
+
+    await context
+        .setPlaybackState(context.playBackState.copyWith(speed: speed));
   }
 
-  void setMediaState(
+  Future<void> setMediaState(
       {@required AudioProcessingState state,
       @required ProcessingState justAudioState,
-      Duration position}) {
+      Duration position}) async {
     if (context.stateHandler != this) {
       return;
     }
 
     position ??= context.upcomingPlaybackSettings?.position ?? Duration.zero;
 
-    context.playBackState = PlaybackState(
+    await context.setPlaybackState(PlaybackState(
         processingState: state,
         // TODO: playing should come from stream.
         actions: getAction(justAudioState, context.mediaPlayer.playing),
@@ -133,7 +135,7 @@ abstract class MediaStateBase {
         speed: context.generalPlaybackSettings?.speed ?? 1,
         // TODO: playing should come from stream.
         playing: context.mediaPlayer.playing,
-        bufferedPosition: context.mediaPlayer.playbackEvent.bufferedPosition);
+        bufferedPosition: context.mediaPlayer.playbackEvent.bufferedPosition));
   }
 
   /// Set the [UpcomingPlaybackSettings.position] of [AudioContextBase.upcomingPlaybackSettings] to the given position.

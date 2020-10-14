@@ -54,7 +54,7 @@ class SeekingState extends MediaStateBase {
         : AudioProcessingState.rewinding;
 
     // We're trying to get to that spot.
-    setMediaState(
+    await setMediaState(
         state: basicState,
         justAudioState: context.mediaPlayer.playerState.processingState,
         position: position);
@@ -89,7 +89,7 @@ class SeekingState extends MediaStateBase {
     }
 
     // We made it to wanted place in media.
-    setMediaState(
+    await setMediaState(
         state:
             MediaStateBase.stateToStateMap[context.mediaPlayer.playerState.processingState],
         justAudioState: context.mediaPlayer.processingState,

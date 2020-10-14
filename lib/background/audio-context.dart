@@ -87,7 +87,7 @@ abstract class AudioContextBase {
   PlaybackState get playBackState;
 
   /// Set the current playback state.
-  set playBackState(PlaybackState playbackState);
+  Future<void> setPlaybackState(PlaybackState playbackState);
 
   GeneralPlaybackSettings get generalPlaybackSettings;
   set generalPlaybackSettings(GeneralPlaybackSettings generalPlaybackSettings);
@@ -116,9 +116,10 @@ class AudioContext extends AudioContextBase {
 
   @override
   PlaybackState get playBackState => _mediaStateSubject.value;
+
   @override
-  set playBackState(PlaybackState state) {
-    AudioServiceBackground.setState(
+  Future<void> setPlaybackState(PlaybackState state) async {
+    await AudioServiceBackground.setState(
         controls: state.playing ? [pauseControl] : [playControl],
         systemActions: state.actions?.toList() ?? List(),
         playing: state.playing,
