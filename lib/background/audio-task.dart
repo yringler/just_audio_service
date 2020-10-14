@@ -24,7 +24,7 @@ class AudioTask extends BackgroundAudioTask implements IContextAudioTask {
   @override
   // (calls super in dispose)
   // ignore: must_call_super
-  Future<void> onStop() async {
+  Future<void> onStop() async { 
     await context.stateHandler.stop();
     await _dispose();
   }

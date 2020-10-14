@@ -44,6 +44,10 @@ class PositionedAudioTask extends AudioTaskDecorater {
 
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
+    // This must be called on start to ensure that we know the psition if UI
+    // asks for it.
+    await dataManager.init();
+
     _readyToAnswerMessages.complete();
 
     subscription = context.mediaStateStream
@@ -76,7 +80,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
         : context.playBackState.currentPosition;
 
     await _endTaskAtPosition(position);
-  }
+}
 
   @override
   Future<void> onPlayFromMediaId(String mediaId) async {
