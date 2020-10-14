@@ -53,12 +53,16 @@ class ConnectingState extends MediaStateBase {
     //   setMediaState(state: BasicPlaybackState.none);
     // }
 
-    // Notify that connecting to media.
+    /*
+     * Notify that connecting to media.
+     */
+
+    // Notify what is being played.
     context.mediaItem = MediaItem(id: url, album: "lessons", title: "lesson");
-    // TODO: Delete commented out code.
-    // super.setMediaState(
-    //     state: AudioProcessingState.connecting,
-    //     justAudioState: ProcessingState.loading);
+    // Notify the state (ie, connecting).
+     super.setMediaState(
+         state: AudioProcessingState.connecting,
+         justAudioState: ProcessingState.loading);
 
     final duration = await context.mediaPlayer.setUrl(url);
 
