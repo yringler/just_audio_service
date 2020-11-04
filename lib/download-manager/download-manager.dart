@@ -98,6 +98,7 @@ class ForgroundDownloadManager {
     final downloadId = await FlutterDownloader.enqueue(
         url: url,
         savedDir: saveDir.path,
+        fileName: sanatizeFileName(url: url),
         showNotification: true,
         openFileFromNotification: false);
 
