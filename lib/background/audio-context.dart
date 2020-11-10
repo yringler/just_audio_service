@@ -86,6 +86,10 @@ abstract class AudioContextBase {
   /// Get the current playback state.
   PlaybackState get playBackState;
 
+  /// Usually, the URL is the ID. Sometimes (eg when the url which is being played
+  /// is a file URL), it isn't. Here, map URLs to IDs.
+  Map<String, String> urlToIdMap = {};
+
   /// Set the current playback state.
   Future<void> setPlaybackState(PlaybackState playbackState);
 

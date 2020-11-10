@@ -40,6 +40,18 @@ String sanatizeFileName({String url}) {
   }
 }
 
+String getFullDownloadPathAsync({String url, String saveFolder}) {
+  return p.join(saveFolder, sanatizeFileName(url: url));
+}
+
+Future<String> getFullDownloadPath({String url}) async =>
+    getFullDownloadPathAsync(saveFolder: await getDownloadFolder(), url: url);
+
+Future<String> getDownloadFolder() async => (Platform.isIOS
+        ? await paths.getLibraryDirectory()
+        : await paths.getExternalStorageDirectory())
+    .path;
+
 /// Used by forground. Downloads the file, provides status updates.
 class ForgroundDownloadManager {
   /// Map of urls to progress. Use URLs so that we can have a stream even before
@@ -66,10 +78,7 @@ class ForgroundDownloadManager {
     await FlutterDownloader.initialize(debug: true);
     FlutterDownloader.registerCallback(downloadCallback);
 
-    _saveDir = (Platform.isIOS
-            ? await paths.getLibraryDirectory()
-            : await paths.getExternalStorageDirectory())
-        .path;
+    _saveDir = await getDownloadFolder();
 
     final allTasks = await FlutterDownloader.loadTasks();
     final verifiedTasks = await verifyTasks(allTasks);
@@ -98,10 +107,6 @@ class ForgroundDownloadManager {
 
   void dispose() {
     IsolateNameServer.removePortNameMapping(fullProgressPortName);
-  }
-
-  String getFullDownloadPathFromUrl({String url}) {
-    return p.join(_saveDir, sanatizeFileName(url: url));
   }
 
   Future<Stream<MinimalDownloadState>> download(String url) async {
@@ -153,7 +158,9 @@ class ForgroundDownloadManager {
         .where((element) => element.progress ?? 0 > 0)
         .toList()
         .map((e) async {
-      if (!await File(p.join(e.savedDir, e.filename)).exists()) {
+      if (!await File(
+              getFullDownloadPathAsync(url: e.url, saveFolder: _saveDir))
+          .exists()) {
         await FlutterDownloader.remove(taskId: e.taskId);
         return e;
       }
