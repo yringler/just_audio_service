@@ -15,6 +15,10 @@ const fullProgressPortName = 'downloader_send_port';
 /// Name of port which just reports when a download is completed.
 const completedDownloadPortName = 'completed_send_port';
 
+/// Name of port used to notify background audio task that a new task/URL mapping
+/// is available.
+const updateTaskIdUrlPortName = 'update_task_url_port';
+
 /// Convert URL into a valid file name for android and iOS
 String sanatizeFileName({String url}) {
   // Android is around 150, iOS is closer to 200, but this should be unique, and
@@ -44,11 +48,13 @@ class ForgroundDownloadManager {
 
   /// Map of ids to URls. We need this in the download listener, which only is passed
   /// the task id.
-  Map<String, String> _downloadIds = {};
+  Map<String, String> downloadIds = {};
 
   ReceivePort _port = ReceivePort();
 
   String _saveDir;
+
+  List<String> get completedUrls => downloadIds.values.toList();
 
   /// Listen for download updates, keep streams in sync with progress.
   Future<void> init() async {
@@ -68,7 +74,7 @@ class ForgroundDownloadManager {
     final allTasks = await FlutterDownloader.loadTasks();
     final verifiedTasks = await verifyTasks(allTasks);
 
-    _downloadIds =
+    downloadIds =
         Map.fromEntries(verifiedTasks.map((e) => MapEntry(e.taskId, e.url)));
 
     _progressStreams = Map.fromEntries(verifiedTasks.map((e) =>
@@ -81,11 +87,11 @@ class ForgroundDownloadManager {
 
       // the call to enqueue the download calls the port before it returns an ID,
       // the map won't have a value yet. So we'll maybe miss one update.
-      if (!_downloadIds.containsKey(id)) {
+      if (!downloadIds.containsKey(id)) {
         return;
       }
 
-      _progressStreams[_downloadIds[id]].value =
+      _progressStreams[downloadIds[id]].value =
           MinimalDownloadState(progress: progress, status: status, taskId: id);
     });
   }
@@ -113,7 +119,9 @@ class ForgroundDownloadManager {
         showNotification: true,
         openFileFromNotification: false);
 
-    _downloadIds[downloadId] = url;
+    downloadIds[downloadId] = url;
+    IsolateNameServer.lookupPortByName(updateTaskIdUrlPortName)
+        ?.send(MapEntry(url, downloadId));
 
     return _progressStreams[url];
   }
@@ -153,7 +161,9 @@ class ForgroundDownloadManager {
       return null;
     });
 
-    final tasksWhichDontExist = await Future.wait(fileExistsFutures);
+    final tasksWhichDontExist = (await Future.wait(fileExistsFutures))
+        .where((element) => element != null)
+        .toList();
 
     return List.from(
         Set.from(allTasks).difference(Set.from(tasksWhichDontExist)));
@@ -164,8 +174,9 @@ void downloadCallback(String id, DownloadTaskStatus status, int progress) {
   IsolateNameServer.lookupPortByName(fullProgressPortName)
       ?.send([id, status, progress]);
 
-  IsolateNameServer.lookupPortByName(completedDownloadPortName)
-      ?.send(status == DownloadTaskStatus.complete);
+  if (status == DownloadTaskStatus.complete) {
+    IsolateNameServer.lookupPortByName(completedDownloadPortName)?.send(id);
+  }
 }
 
 class MinimalDownloadState {
