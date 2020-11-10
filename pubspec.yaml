@@ -19,6 +19,7 @@ dependencies:
   dart_extensions: ^1.0.1
   flutter_downloader: ^1.5.2
   slugify: ^1.0.0
+  path: ^1.7.0
   
 dev_dependencies:
     build_runner: ^1.10.0
