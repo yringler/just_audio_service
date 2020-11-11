@@ -14,7 +14,7 @@ import 'package:just_audio_service/download-manager/download-manager.dart';
 class DownloadAudioTask extends AudioTaskDecorater {
   Set<String> completedDownloads = {};
   Map<String, String> idToUrlMap = {};
-  ReceivePort _port = ReceivePort();
+  ReceivePort _completedPort = ReceivePort();
   ReceivePort _newAdded = ReceivePort();
 
   DownloadAudioTask({@required IContextAudioTask audioTask})
@@ -33,27 +33,27 @@ class DownloadAudioTask extends AudioTaskDecorater {
   // Must be passed a set of all completed downloads on start.
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
-    if (!params.containsKey('completed') ||
-        !params['completed'] is Set<String> ||
-        !params.containsKey('id_to_url') ||
-        !params['id_to_url'] is Map<String, String>) {
-      throw ArgumentError('Note passed in completed files');
+    try {
+      completedDownloads = params['completed'] as Set<String>;
+      idToUrlMap = params['id_to_url'] as Map<String, String>;
+    } catch (e) {
+      print(
+          'Error: failed type cast: possible missing start params to download audio task');
+      throw e;
     }
 
-    completedDownloads = params['completed'] as Set<String>;
-    idToUrlMap = params['id_to_url'] as Map<String, String>;
-
     final downloadPath = await getDownloadFolder();
-    context.urlToIdMap.addEntries(idToUrlMap.values.map((e) => MapEntry(
-        e, getFullDownloadPathAsync(saveFolder: downloadPath, url: e))));
+    context.urlToIdMap.addEntries(idToUrlMap.values.map((url) => MapEntry(
+        url, getFullDownloadPathAsync(saveFolder: downloadPath, url: url))));
 
     IsolateNameServer.removePortNameMapping(completedDownloadPortName);
     IsolateNameServer.registerPortWithName(
-        _port.sendPort, completedDownloadPortName);
+        _completedPort.sendPort, completedDownloadPortName);
 
-    _port.listen((message) async {
+    _completedPort.listen((message) async {
       final String taskId = message;
       assert(idToUrlMap.containsKey(taskId));
+
       final url = idToUrlMap[taskId];
       completedDownloads.add(url);
       context.urlToIdMap[
@@ -73,6 +73,7 @@ class DownloadAudioTask extends AudioTaskDecorater {
       final entry = message as MapEntry<String, String>;
       idToUrlMap.addEntries([entry]);
     });
+
     super.onStart(params);
   }
 }

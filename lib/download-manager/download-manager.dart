@@ -23,7 +23,7 @@ const updateTaskIdUrlPortName = 'update_task_url_port';
 String sanatizeFileName({String url}) {
   // Android is around 150, iOS is closer to 200, but this should be unique, and
   // not cause errors.
-  const maxSize = 100;
+  const maxSize = 120;
 
   try {
     final uri = Uri.parse(url);
@@ -33,7 +33,7 @@ String sanatizeFileName({String url}) {
     final suffix = '.' + nameParts.removeLast();
     final fileName = nameParts.join('.');
 
-    return fileName.substring(0, maxSize - suffix.length) + suffix;
+    return fileName.substring(0, maxSize) + suffix;
   } catch (err) {
     print(err);
     return null;
@@ -55,13 +55,14 @@ Future<String> getDownloadFolder() async => (Platform.isIOS
 /// Used by forground. Downloads the file, provides status updates.
 class ForgroundDownloadManager {
   /// Map of urls to progress. Use URLs so that we can have a stream even before
-  /// download begins.
+  /// download begins (when we don't have a task ID yet).
   Map<String, BehaviorSubject<MinimalDownloadState>> _progressStreams = {};
 
-  /// Map of ids to URls. We need this in the download listener, which only is passed
+  /// Map of ids to URls. We need this in the download listener, which is only passed
   /// the task id.
   Map<String, String> downloadIds = {};
 
+  /// Port to recieve all the progress updates from flutter_downloader.
   ReceivePort _port = ReceivePort();
 
   String _saveDir;
@@ -86,16 +87,19 @@ class ForgroundDownloadManager {
     downloadIds =
         Map.fromEntries(verifiedTasks.map((e) => MapEntry(e.taskId, e.url)));
 
-    _progressStreams = Map.fromEntries(verifiedTasks.map((e) =>
-        MapEntry(e.url, BehaviorSubject.seeded(_getProgressFromTask(e)))));
+    _progressStreams = Map.fromEntries(verifiedTasks.map((e) => MapEntry(
+        e.url,
+        BehaviorSubject.seeded(MinimalDownloadState(
+            progress: e.progress, status: e.status, taskId: e.taskId)))));
 
     _port.listen((data) {
       final String id = data[0];
       final DownloadTaskStatus status = data[1];
       final int progress = data[2];
 
-      // the call to enqueue the download calls the port before it returns an ID,
-      // the map won't have a value yet. So we'll maybe miss one update.
+      // When the download is started, a message may be passed before the start
+      // method returns an ID, so the map won't have a value yet.
+      // So we'll maybe miss one update.
       if (!downloadIds.containsKey(id)) {
         return;
       }
@@ -109,6 +113,7 @@ class ForgroundDownloadManager {
     IsolateNameServer.removePortNameMapping(fullProgressPortName);
   }
 
+  /// Initiate download of the given [url]. Returns stream of progress updates.
   Future<Stream<MinimalDownloadState>> download(String url) async {
     if (_progressStreams.containsKey(url)) {
       return getProgressStreamFromUrl(url);
@@ -125,30 +130,20 @@ class ForgroundDownloadManager {
         openFileFromNotification: false);
 
     downloadIds[downloadId] = url;
+    // Notify the background task of the new url/taskId pair.
     IsolateNameServer.lookupPortByName(updateTaskIdUrlPortName)
-        ?.send(MapEntry(url, downloadId));
+        ?.send(MapEntry(downloadId, url));
 
     return _progressStreams[url];
   }
 
   Stream<MinimalDownloadState> getProgressStreamFromUrl(String url) {
     if (!_progressStreams.containsKey(url)) {
-      return _progressStreams[url] = BehaviorSubject.seeded(null);
+      return _progressStreams[url] = BehaviorSubject.seeded(
+          MinimalDownloadState(status: DownloadTaskStatus.undefined));
     }
 
     return _progressStreams[url];
-  }
-
-  static _getProgressFromTask(DownloadTask task) {
-    if (task.status == DownloadTaskStatus.complete) {
-      return 100;
-    } else if (task.status == DownloadTaskStatus.running ||
-        task.status == DownloadTaskStatus.paused ||
-        task.status == DownloadTaskStatus.enqueued) {
-      return task.progress ?? 0;
-    } else {
-      return null;
-    }
   }
 
   // Makes sure that any task with progress hasn't been deleted. If it has been,

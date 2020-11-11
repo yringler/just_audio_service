@@ -59,10 +59,11 @@ class ConnectingState extends MediaStateBase {
      * Notify that connecting to media.
      */
 
-    final publicId = context.urlToIdMap[url] ?? url;
+      final publicId = context.urlToIdMap[url] ?? url;
 
       // Notify what is being played.
-      context.mediaItem = MediaItem(id: publicId, album: "lessons", title: "lesson");
+      context.mediaItem =
+          MediaItem(id: publicId, album: "lessons", title: "lesson");
       // Notify the state (ie, connecting).
       super.setMediaState(
           state: AudioProcessingState.connecting,
