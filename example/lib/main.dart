@@ -9,6 +9,9 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:just_audio_service/download-manager/download-audio-task.dart';
+import 'package:just_audio_service/download-manager/download-manager.dart';
 import 'package:just_audio_service/position-manager/position-data-manager.dart';
 import 'package:just_audio_service/position-manager/position-manager.dart';
 import 'package:just_audio_service/position-manager/position.dart';
@@ -18,8 +21,11 @@ import 'package:rxdart/rxdart.dart';
 final positionManager =
     PositionManager(positionDataManager: HivePositionDataManager());
 
+final downloadManager = ForgroundDownloadManager();
+
 void main() {
   runApp(new MyApp());
+  downloadManager.init();
 }
 
 const audioUrl =
@@ -63,6 +69,7 @@ class MainScreen extends StatelessWidget {
                     children: [
                       if (playing) pauseButton() else playButton(),
                       stopButton(),
+                      downloadButtion()
                     ],
                   ),
                 if (processingState != AudioProcessingState.none &&
@@ -103,13 +110,14 @@ class MainScreen extends StatelessWidget {
   RaisedButton audioPlayerButton() => startButton(
       'AudioPlayer',
       () => AudioService.start(
-            backgroundTaskEntrypoint: _audioPlayerTaskEntrypoint,
-            androidNotificationChannelName: 'Audio Service Demo',
-            // Enable this if you want the Android service to exit the foreground state on pause.
-            androidStopForegroundOnPause: true,
-            androidNotificationColor: 0xFF2196f3,
-            androidNotificationIcon: 'mipmap/ic_launcher',
-          ).then((value) async {
+                  backgroundTaskEntrypoint: _audioPlayerTaskEntrypoint,
+                  androidNotificationChannelName: 'Audio Service Demo',
+                  // Enable this if you want the Android service to exit the foreground state on pause.
+                  androidStopForegroundOnPause: true,
+                  androidNotificationColor: 0xFF2196f3,
+                  androidNotificationIcon: 'mipmap/ic_launcher',
+                  params: DownloadAudioTask.createStartParams(downloadManager))
+              .then((value) async {
             await AudioService.playFromMediaId(audioUrl);
           }));
 
@@ -135,6 +143,47 @@ class MainScreen extends StatelessWidget {
         icon: Icon(Icons.stop),
         iconSize: 64.0,
         onPressed: AudioService.stop,
+      );
+
+  Widget downloadButtion() => StreamBuilder<MinimalDownloadState>(
+        stream: downloadManager.getProgressStreamFromUrl(audioUrl),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return IconButton(
+                icon: Icon(Icons.download_outlined), onPressed: null);
+          }
+
+          final status = snapshot.data.status;
+
+          if (status == DownloadTaskStatus.undefined ||
+              status == DownloadTaskStatus.failed) {
+            return IconButton(
+                icon: Icon(Icons.download_rounded),
+                onPressed: () => downloadManager.download(audioUrl));
+          }
+
+          if ([DownloadTaskStatus.paused, DownloadTaskStatus.enqueued]
+              .contains(status)) {
+            return CircularProgressIndicator();
+          }
+
+          if (status == DownloadTaskStatus.running) {
+            return CircularProgressIndicator(
+              value: snapshot.data.progress / 100.0,
+            );
+          }
+
+          if (status == DownloadTaskStatus.complete) {
+            return IconButton(
+                icon: Icon(
+                  Icons.download_done_rounded,
+                  color: Colors.green,
+                ),
+                onPressed: () => downloadManager.delete(audioUrl));
+          }
+
+          throw Exception('unusable status: $status');
+        },
       );
 
   Widget positionIndicator(MediaItem mediaItem, PlaybackState state) {
@@ -172,5 +221,6 @@ class ScreenState {
 
 // NOTE: Your entrypoint MUST be a top-level function.
 void _audioPlayerTaskEntrypoint() {
-  AudioServiceBackground.run(() => PositionedAudioTask.standard());
+  AudioServiceBackground.run(
+      () => DownloadAudioTask(audioTask: PositionedAudioTask.standard()));
 }

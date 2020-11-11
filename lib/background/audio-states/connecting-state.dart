@@ -19,8 +19,8 @@ class ConnectingState extends MediaStateBase {
 
   @override
   Future<void> seek(Duration position) async =>
-  // TODO: This should also update the client position (instead of just relying on
-  // the position manager)
+      // TODO: This should also update the client position (instead of just relying on
+      // the position manager)
       super.setFutureSeekValue(position);
 
   @override
@@ -33,55 +33,63 @@ class ConnectingState extends MediaStateBase {
 
   @override
   Future<void> setUrl(String url) async {
-    // If URL is called multiple times with same value, ignore.
-    if (url == context.mediaItem?.id) {
-      return;
-    }
+    reactToStream = false;
+    try {
+      // If URL is called multiple times with same value, ignore.
+      if (url == context.mediaItem?.id) {
+        return;
+      }
 
-    // In case we connect to diffirent media items, without playing in the middle.
-    if (_completer.isCompleted) {
-      _completer = Completer();
-    }
+      // In case we connect to diffirent media items, without playing in the middle.
+      if (_completer.isCompleted) {
+        _completer = Completer();
+      }
 
-    // Set state to none in between media items, to give a clear indication of what state events
-    // apply to which media.
-    // (On startup, before anything happens, AudioService has a none state, and context.playBackState is null
-    // because it gets its value when only when this plugin code sets it.)
+      // Set state to none in between media items, to give a clear indication of what state events
+      // apply to which media.
+      // (On startup, before anything happens, AudioService has a none state, and context.playBackState is null
+      // because it gets its value when only when this plugin code sets it.)
 
-    // Commenting out - this probably isn't neccesary...
-    // if (context.playBackState != null && context.playBackState.basicState != BasicPlaybackState.none) {
-    //   setMediaState(state: BasicPlaybackState.none);
-    // }
+      // Commenting out - this probably isn't neccesary...
+      // if (context.playBackState != null && context.playBackState.basicState != BasicPlaybackState.none) {
+      //   setMediaState(state: BasicPlaybackState.none);
+      // }
 
-    /*
+      /*
      * Notify that connecting to media.
      */
 
-    // Notify what is being played.
-    context.mediaItem = MediaItem(id: url, album: "lessons", title: "lesson");
-    // Notify the state (ie, connecting).
-     super.setMediaState(
-         state: AudioProcessingState.connecting,
-         justAudioState: ProcessingState.loading);
+      final publicId = context.urlToIdMap[url] ?? url;
 
-    final duration = await context.mediaPlayer.setUrl(url);
+      // Notify what is being played.
+      context.mediaItem =
+          MediaItem(id: publicId, album: "lessons", title: "lesson");
+      // Notify the state (ie, connecting).
+      super.setMediaState(
+          state: AudioProcessingState.connecting,
+          justAudioState: ProcessingState.loading);
 
-    // If we switched to something else while this file was loading,
-    // forget about it.
-    // (setUrl returns null if interrupted by another)
-    if (duration == null) {
-      return;
+      final duration = await context.mediaPlayer.setUrl(url);
+
+      // If we switched to something else while this file was loading,
+      // forget about it.
+      // (setUrl returns null if interrupted by another)
+      if (duration == null) {
+        return;
+      }
+
+      // Notify length of media.
+      // TODO: Provide way to client to specify duration in media item if
+      // it's already known.
+      context.mediaItem = context.mediaItem.copyWith(duration: duration);
+
+      // super.setMediaState(
+      //     state: AudioProcessingState.ready,
+      //     justAudioState: ProcessingState.ready);
+
+      _completer.complete();
+    } finally {
+      reactToStream = true;
     }
-
-    // Notify length of media.
-    // TODO: Provide way to client to specify duration in media item if
-    // it's already known.
-    context.mediaItem = context.mediaItem.copyWith(duration: duration);
-
-    // super.setMediaState(
-    //     state: AudioProcessingState.ready,
-    //     justAudioState: ProcessingState.ready);
-
-    _completer.complete();
   }
 }
