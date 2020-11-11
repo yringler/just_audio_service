@@ -56,6 +56,10 @@ To use `PositionManager`: you'd want to make sure to only have one instance per 
 To take advantage of the position streams, seek via the `seek` method, not directly with `AudioService` method.
 Note that if you opt to save position, (For example, by using the `PositionedAudioTask.standard()` constructor, you can call seek on a media which isn't active, and playback for that media will start from the seeked-to position.
 
+There is now also a `DownloadAudioTask`, which is used with `DownloadManager` on the client to download audio files for
+offline playback. It is somewhat progressive - if audio is streaming and then downloaded, when the download is finished the
+playback will switch to the offline file.
+
 ### Motivation
 My initial audio BackgroundAudioTask quickly descended into a labyrinth of spaghetti code, inhabited by hosts of minotaur quick to consume any who hoped to maintain it.
 
