@@ -98,7 +98,7 @@ packages:
     source: hosted
     version: "1.4.2"
   flutter_downloader:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_downloader
       url: "https://pub.dartlang.org"
