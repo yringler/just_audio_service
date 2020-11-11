@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart' as paths;
 import 'package:rxdart/rxdart.dart';
 import 'package:slugify/slugify.dart';
 import 'package:path/path.dart' as p;
+import 'package:dart_extensions/dart_extensions.dart';
 
 /// Name of port which provides access to the full download progress.
 const fullProgressPortName = 'downloader_send_port';
@@ -27,13 +28,12 @@ String sanatizeFileName({String url}) {
 
   try {
     final uri = Uri.parse(url);
-    final sluggifiedName =
-        Slugify(uri.pathSegments.last, delimiter: '_') as String;
-    final nameParts = sluggifiedName.split('.');
-    final suffix = '.' + nameParts.removeLast();
-    final fileName = nameParts.join('.');
+    final fileName = uri.pathSegments.last;
+    final nameParts = fileName.split('.');
+    final suffix = nameParts.removeLast();
+    final sluggifiedName = Slugify(nameParts.join(), delimiter: '_') as String;
 
-    return fileName.substring(0, maxSize) + suffix;
+    return sluggifiedName.limitFromStart(maxSize) + '.$suffix';
   } catch (err) {
     print(err);
     return null;
@@ -113,14 +113,32 @@ class ForgroundDownloadManager {
     IsolateNameServer.removePortNameMapping(fullProgressPortName);
   }
 
+  /// Delete the file downloaded from the given URL.
+  Future<void> delete(String url) async {
+    final taskId = _progressStreams[url]?.value?.taskId;
+
+    if (taskId == null) {
+      return;
+    }
+
+    await FlutterDownloader.remove(taskId: taskId, shouldDeleteContent: true);
+  }
+
   /// Initiate download of the given [url]. Returns stream of progress updates.
   Future<Stream<MinimalDownloadState>> download(String url) async {
-    if (_progressStreams.containsKey(url)) {
+    final currentStatus =
+        _progressStreams[url]?.value?.status ?? DownloadTaskStatus.undefined;
+    if (![
+      DownloadTaskStatus.undefined,
+      DownloadTaskStatus.canceled,
+      DownloadTaskStatus.failed
+    ].contains(currentStatus)) {
       return getProgressStreamFromUrl(url);
     }
 
-    _progressStreams[url] = BehaviorSubject.seeded(
-        MinimalDownloadState(status: DownloadTaskStatus.enqueued));
+    final newState = MinimalDownloadState(status: DownloadTaskStatus.enqueued);
+    _progressStreams[url]?.value = newState;
+    _progressStreams[url] ??= BehaviorSubject.seeded(newState);
 
     final downloadId = await FlutterDownloader.enqueue(
         url: url,
@@ -150,7 +168,7 @@ class ForgroundDownloadManager {
   // remove the task.
   Future<List<DownloadTask>> verifyTasks(List<DownloadTask> allTasks) async {
     final fileExistsFutures = allTasks
-        .where((element) => element.progress ?? 0 > 0)
+        .where((element) => (element.progress ?? 0) > 0)
         .toList()
         .map((e) async {
       if (!await File(

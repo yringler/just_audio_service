@@ -16,35 +16,38 @@ class DownloadAudioTask extends AudioTaskDecorater {
   Map<String, String> idToUrlMap = {};
   ReceivePort _completedPort = ReceivePort();
   ReceivePort _newAdded = ReceivePort();
+  String _downloadPath;
 
   DownloadAudioTask({@required IContextAudioTask audioTask})
       : super(baseTask: audioTask);
 
   DownloadAudioTask.standard() : this(audioTask: AudioTask());
 
+  String _getFilePath(String url) =>
+      getFullDownloadPathAsync(saveFolder: _downloadPath, url: url);
+
   /// Called from UI to create the params needed to start task.
   static Map<String, dynamic> createStartParams(
           ForgroundDownloadManager manager) =>
-      {
-        'completed': manager.completedUrls.toSet(),
-        'id_to_url': manager.downloadIds
-      };
+      {'completed': manager.completedUrls, 'id_to_url': manager.downloadIds};
 
   // Must be passed a set of all completed downloads on start.
   @override
   Future<void> onStart(Map<String, dynamic> params) async {
     try {
-      completedDownloads = params['completed'] as Set<String>;
-      idToUrlMap = params['id_to_url'] as Map<String, String>;
+      completedDownloads =
+          (params['completed'] as List<dynamic>).cast<String>().toSet();
+      idToUrlMap =
+          (params['id_to_url'] as Map<dynamic, dynamic>).cast<String, String>();
     } catch (e) {
       print(
           'Error: failed type cast: possible missing start params to download audio task');
       throw e;
     }
 
-    final downloadPath = await getDownloadFolder();
+    _downloadPath = await getDownloadFolder();
     context.urlToIdMap.addEntries(idToUrlMap.values.map((url) => MapEntry(
-        url, getFullDownloadPathAsync(saveFolder: downloadPath, url: url))));
+        getFullDownloadPathAsync(saveFolder: _downloadPath, url: url), url)));
 
     IsolateNameServer.removePortNameMapping(completedDownloadPortName);
     IsolateNameServer.registerPortWithName(
@@ -56,8 +59,7 @@ class DownloadAudioTask extends AudioTaskDecorater {
 
       final url = idToUrlMap[taskId];
       completedDownloads.add(url);
-      context.urlToIdMap[
-          getFullDownloadPathAsync(saveFolder: downloadPath, url: url)] = url;
+      context.urlToIdMap[_getFilePath(url)] = url;
 
       if (context.mediaItem.id == url) {
         context.stateHandler
@@ -75,5 +77,13 @@ class DownloadAudioTask extends AudioTaskDecorater {
     });
 
     super.onStart(params);
+  }
+
+  @override
+  Future<void> onPlayFromMediaId(String mediaId) async {
+    final playURL =
+        completedDownloads.contains(mediaId) ? _getFilePath(mediaId) : mediaId;
+
+    super.onPlayFromMediaId(playURL);
   }
 }

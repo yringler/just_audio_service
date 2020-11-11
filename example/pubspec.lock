@@ -70,7 +70,7 @@ packages:
       name: dart_extensions
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.1"
+    version: "1.0.2"
   ffi:
     dependency: transitive
     description:

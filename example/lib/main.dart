@@ -25,6 +25,7 @@ final downloadManager = ForgroundDownloadManager();
 
 void main() {
   runApp(new MyApp());
+  downloadManager.init();
 }
 
 const audioUrl =
@@ -178,7 +179,7 @@ class MainScreen extends StatelessWidget {
                   Icons.download_done_rounded,
                   color: Colors.green,
                 ),
-                onPressed: null);
+                onPressed: () => downloadManager.delete(audioUrl));
           }
 
           throw Exception('unusable status: $status');
