@@ -86,7 +86,8 @@ class PositionedAudioTask extends AudioTaskDecorater {
 
   @override
   Future<void> onPlayFromMediaId(String mediaId) async {
-    final startPosition = await dataManager.getPosition(mediaId);
+    final startPosition =
+        await dataManager.getPosition(context.getIdFromUrl(mediaId));
 
     if (startPosition != Duration.zero) {
       context.upcomingPlaybackSettings =

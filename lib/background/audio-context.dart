@@ -90,6 +90,9 @@ abstract class AudioContextBase {
   /// is a file URL), it isn't. Here, map URLs to IDs.
   Map<String, String> urlToIdMap = {};
 
+  /// Returns the correct ID for the URL, even if the URL is e.g. a file url.
+  String getIdFromUrl(String url) => urlToIdMap[url] ?? url;
+
   /// Set the current playback state.
   Future<void> setPlaybackState(PlaybackState playbackState);
 
