@@ -167,8 +167,18 @@ class ForgroundDownloadManager {
 
   Stream<MinimalDownloadState> getProgressStreamFromUrl(String url) {
     if (!_progressStreams.containsKey(url)) {
-      return _progressStreams[url] = BehaviorSubject.seeded(
+      _progressStreams[url] = BehaviorSubject.seeded(
           MinimalDownloadState(status: DownloadTaskStatus.undefined));
+
+      // Don't clutter memory with not downloaded streams.
+      _progressStreams[url].onCancel = () {
+        if (_progressStreams[url].value.status ==
+            DownloadTaskStatus.undefined) {
+          _progressStreams.remove(url);
+        }
+      };
+
+      return _progressStreams[url];
     }
 
     return _progressStreams[url];
