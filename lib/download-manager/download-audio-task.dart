@@ -58,18 +58,16 @@ class DownloadAudioTask extends AudioTaskDecorater {
       assert(idToUrlMap.containsKey(taskId));
 
       final webUrl = idToUrlMap[taskId];
-      final fileUrl = Uri.file(_getFilePath(webUrl)).toString();
+      final fileUrl = _getFilePath(webUrl);
       completedDownloads.add(webUrl);
       context.urlToIdMap[fileUrl] = webUrl;
 
       if (context.mediaItem.id == webUrl) {
         final currentPosition = context.playBackState.currentPosition;
-        context.stateHandler
-            .setUrl(fileUrl)
-            .then((value) {
-              context.stateHandler.seek(currentPosition);
-              context.stateHandler.play();
-            });
+        context.stateHandler.setUrl(fileUrl).then((value) {
+          context.stateHandler.seek(currentPosition);
+          context.stateHandler.play();
+        });
       }
     });
 
