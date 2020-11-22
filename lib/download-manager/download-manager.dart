@@ -222,8 +222,13 @@ class ForgroundDownloadManager {
         .take(amountToDelete)
         .toList();
 
-    await Future.wait(toDelete.map((e) =>
-        FlutterDownloader.remove(taskId: e.taskId, shouldDeleteContent: true)));
+    await Future.wait(toDelete.map((e) async {
+      // I would rely on flutter downloader remove with remove, but IDK if it works
+      // on iOS between app versions.
+      await FlutterDownloader.remove(taskId: e.taskId);
+      await File(getFullDownloadPathAsync(saveFolder: _saveDir, url: e.url))
+          .delete();
+    }));
 
     return (tasks.subtract(toDelete) as Set<DownloadTask>).toList();
   }
