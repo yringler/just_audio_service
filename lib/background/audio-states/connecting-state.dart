@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:path_provider/path_provider.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/audio-state-base.dart';
 import 'package:just_audio_service/background/audio-states/playing-state.dart';
@@ -71,6 +73,11 @@ class ConnectingState extends MediaStateBase {
 
       // Don't continue playing current audio when switched to new.
       await context.mediaPlayer.pause();
+
+      if (url.startsWith(p.separator)) {
+        url = Uri.file(url).toString();
+      }
+
       final duration = await context.mediaPlayer.setUrl(url);
 
       // If we switched to something else while this file was loading,
