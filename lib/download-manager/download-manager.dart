@@ -48,7 +48,7 @@ Future<String> getFullDownloadPath({String url}) async =>
     getFullDownloadPathAsync(saveFolder: await getDownloadFolder(), url: url);
 
 Future<String> getDownloadFolder() async => (Platform.isIOS
-        ? await paths.getLibraryDirectory()
+        ? await paths.getApplicationDocumentsDirectory()
         : await paths.getExternalStorageDirectory())
     .path;
 
