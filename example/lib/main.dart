@@ -9,19 +9,13 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:just_audio_service/download-manager/download-audio-task.dart';
-import 'package:just_audio_service/download-manager/download-manager.dart';
-import 'package:just_audio_service/position-manager/position-data-manager.dart';
-import 'package:just_audio_service/position-manager/position-manager.dart';
-import 'package:just_audio_service/position-manager/position.dart';
-import 'package:just_audio_service/position-manager/positioned-audio-task.dart';
-import 'package:just_audio_service/widgets/download-button.dart';
+import 'package:just_audio_service/index.dart';
 import 'package:rxdart/rxdart.dart';
 
 final positionManager =
     PositionManager(positionDataManager: HivePositionDataManager());
 
-final downloadManager = ForgroundDownloadManager();
+final downloadManager = ForgroundDownloadManager(maxDownloads: 0);
 
 void main() {
   runApp(new MyApp());

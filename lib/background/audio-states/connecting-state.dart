@@ -69,6 +69,8 @@ class ConnectingState extends MediaStateBase {
           state: AudioProcessingState.connecting,
           justAudioState: ProcessingState.loading);
 
+      // Don't continue playing current audio when switched to new.
+      await context.mediaPlayer.pause();
       final duration = await context.mediaPlayer.setUrl(url);
 
       // If we switched to something else while this file was loading,

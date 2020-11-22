@@ -90,8 +90,8 @@ class SeekingState extends MediaStateBase {
 
     // We made it to wanted place in media.
     await setMediaState(
-        state:
-            MediaStateBase.stateToStateMap[context.mediaPlayer.playerState.processingState],
+        state: MediaStateBase
+            .stateToStateMap[context.mediaPlayer.playerState.processingState],
         justAudioState: context.mediaPlayer.processingState,
         position: position);
 

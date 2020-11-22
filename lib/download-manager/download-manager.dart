@@ -62,12 +62,18 @@ class ForgroundDownloadManager {
   /// the task id.
   Map<String, String> downloadIds = {};
 
+  /// The greatest number of downloads which we allow untill we start deleting
+  /// the oldest. Defaults to no limit.
+  final int maxDownloads;
+
   /// Port to recieve all the progress updates from flutter_downloader.
   ReceivePort _port = ReceivePort();
 
   String _saveDir;
 
   List<String> get completedUrls => downloadIds.values.toList();
+
+  ForgroundDownloadManager({this.maxDownloads});
 
   /// Listen for download updates, keep streams in sync with progress.
   Future<void> init() async {
@@ -83,14 +89,18 @@ class ForgroundDownloadManager {
 
     final allTasks = await FlutterDownloader.loadTasks();
     final verifiedTasks = await verifyTasks(allTasks);
+    final allowedTasks = await _deleteExtraTasks(verifiedTasks);
 
     downloadIds =
-        Map.fromEntries(verifiedTasks.map((e) => MapEntry(e.taskId, e.url)));
+        Map.fromEntries(allowedTasks.map((e) => MapEntry(e.taskId, e.url)));
 
-    _progressStreams = Map.fromEntries(verifiedTasks.map((e) => MapEntry(
+    _progressStreams = Map.fromEntries(allowedTasks.map((e) => MapEntry(
         e.url,
         BehaviorSubject.seeded(MinimalDownloadState(
-            progress: e.progress, status: e.status, taskId: e.taskId)))));
+          progress: e.progress,
+          status: e.status,
+          taskId: e.taskId,
+        )))));
 
     _port.listen((data) {
       final String id = data[0];
@@ -187,6 +197,25 @@ class ForgroundDownloadManager {
 
     return List.from(
         Set.from(allTasks).difference(Set.from(tasksWhichDontExist)));
+  }
+
+  Future<List<DownloadTask>> _deleteExtraTasks(List<DownloadTask> tasks) async {
+    if (maxDownloads == null || tasks.length <= maxDownloads) {
+      return tasks;
+    }
+
+    final amountToDelete = tasks.length - maxDownloads;
+    // Delete the oldest items.
+    final toDelete = tasks
+        .sortBy((task) => task.timeCreated)
+        .toList()
+        .take(amountToDelete)
+        .toList();
+
+    await Future.wait(toDelete.map((e) =>
+        FlutterDownloader.remove(taskId: e.taskId, shouldDeleteContent: true)));
+
+    return (tasks.subtract(toDelete) as Set<DownloadTask>).toList();
   }
 }
 

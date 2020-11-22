@@ -13,9 +13,13 @@ class DownloadButton extends StatelessWidget {
   Widget build(BuildContext context) => StreamBuilder<MinimalDownloadState>(
         stream: downloadManager.getProgressStreamFromUrl(audioUrl),
         builder: (context, snapshot) {
+          final iconSize = Theme.of(context).iconTheme.size ?? 24;
+
           if (!snapshot.hasData) {
             return IconButton(
-                icon: Icon(Icons.download_outlined), onPressed: null);
+                iconSize: iconSize,
+                icon: Icon(Icons.download_outlined),
+                onPressed: null);
           }
 
           final status = snapshot.data.status;
@@ -23,6 +27,7 @@ class DownloadButton extends StatelessWidget {
           if (status == DownloadTaskStatus.undefined ||
               status == DownloadTaskStatus.failed) {
             return IconButton(
+                iconSize: iconSize,
                 icon: Icon(Icons.download_rounded),
                 onPressed: () => downloadManager.download(audioUrl));
           }
@@ -33,13 +38,16 @@ class DownloadButton extends StatelessWidget {
           }
 
           if (status == DownloadTaskStatus.running) {
-            return CircularProgressIndicator(
-              value: snapshot.data.progress / 100.0,
+            return Theme(
+              data: Theme.of(context).copyWith(accentColor: Colors.green),
+              child: CircularProgressIndicator(
+                  value: snapshot.data.progress / 100.0),
             );
           }
 
           if (status == DownloadTaskStatus.complete) {
             return IconButton(
+                iconSize: iconSize,
                 icon: Icon(
                   Icons.download_done_rounded,
                   color: Colors.green,
