@@ -1,5 +1,10 @@
 # just_audio_service
 
+# :warning: Quickly becoming obsolete
+This plugin works for what I need, and I'm using it in a production app with 600+ users, but it is very dated.
+All of the complicated code, most of the work, is working around limitations in the just_audio plugin, audio_service, and hive - limitations which either _do not exist anymore_ or quickly won't be an issue.
+I do intend to update to the latest audio_service/just_audio, but right now I'm busy with other parts of the app, and the audio play back works fine.
+
 # :warning: Disclaimer :warning:
 As is enumerated below and in the project issues, this plugin doesn't support some basic things, and is not sufficiant for most use cases. I can only recommend
 it's use if at least one of the following is true:
