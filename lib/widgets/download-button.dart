@@ -7,7 +7,7 @@ class DownloadButton extends StatelessWidget {
   final ForgroundDownloadManager downloadManager;
   final String audioUrl;
 
-  DownloadButton({@required this.downloadManager, @required this.audioUrl});
+  DownloadButton({required this.downloadManager, required this.audioUrl});
 
   @override
   Widget build(BuildContext context) => StreamBuilder<MinimalDownloadState>(
@@ -22,7 +22,7 @@ class DownloadButton extends StatelessWidget {
                 onPressed: null);
           }
 
-          final status = snapshot.data.status;
+          final status = snapshot.data!.status;
 
           if (status == DownloadTaskStatus.undefined ||
               status == DownloadTaskStatus.failed) {
@@ -41,7 +41,7 @@ class DownloadButton extends StatelessWidget {
             return Theme(
               data: Theme.of(context).copyWith(accentColor: Colors.green),
               child: CircularProgressIndicator(
-                  value: snapshot.data.progress / 100.0),
+                  value: snapshot.data!.progress! / 100.0),
             );
           }
 

@@ -67,9 +67,11 @@ packages:
   dart_extensions:
     dependency: transitive
     description:
-      name: dart_extensions
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: "5914d63888d80d6d93e0ba44d35d6b14346d8341"
+      resolved-ref: "5914d63888d80d6d93e0ba44d35d6b14346d8341"
+      url: "https://github.com/yringler/dart_extensions"
+    source: git
     version: "2.0.1"
   ffi:
     dependency: transitive

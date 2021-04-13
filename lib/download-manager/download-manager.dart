@@ -21,7 +21,7 @@ const completedDownloadPortName = 'completed_send_port';
 const updateTaskIdUrlPortName = 'update_task_url_port';
 
 /// Convert URL into a valid file name for android and iOS
-String sanatizeFileName({String url}) {
+String? sanatizeFileName({required String url}) {
   // Android is around 150, iOS is closer to 200, but this should be unique, and
   // not cause errors.
   const maxSize = 120;
@@ -33,23 +33,24 @@ String sanatizeFileName({String url}) {
     final suffix = nameParts.removeLast();
     final sluggifiedName = slugify(nameParts.join(), delimiter: '_');
 
-    return sluggifiedName.limitFromStart(maxSize) + '.$suffix';
+    return sluggifiedName.limitFromStart(maxSize)! + '.$suffix';
   } catch (err) {
     print(err);
     return null;
   }
 }
 
-String getFullDownloadPathAsync({String url, String saveFolder}) {
+String getFullDownloadPathAsync(
+    {required String url, required String saveFolder}) {
   return p.join(saveFolder, sanatizeFileName(url: url));
 }
 
-Future<String> getFullDownloadPath({String url}) async =>
+Future<String> getFullDownloadPath({required String url}) async =>
     getFullDownloadPathAsync(saveFolder: await getDownloadFolder(), url: url);
 
 Future<String> getDownloadFolder() async => (Platform.isIOS
         ? await paths.getApplicationDocumentsDirectory()
-        : await paths.getExternalStorageDirectory())
+        : await paths.getExternalStorageDirectory())!
     .path;
 
 /// Used by forground. Downloads the file, provides status updates.
@@ -60,16 +61,16 @@ class ForgroundDownloadManager {
 
   /// Map of ids to URls. We need this in the download listener, which is only passed
   /// the task id.
-  Map<String, String> downloadIds = {};
+  Map<String?, String> downloadIds = {};
 
   /// The greatest number of downloads which we allow untill we start deleting
   /// the oldest. Defaults to no limit.
-  final int maxDownloads;
+  final int? maxDownloads;
 
   /// Port to recieve all the progress updates from flutter_downloader.
   ReceivePort _port = ReceivePort();
 
-  String _saveDir;
+  late String _saveDir;
 
   List<String> get completedUrls => downloadIds.values.toList();
 
@@ -87,7 +88,7 @@ class ForgroundDownloadManager {
 
     _saveDir = await getDownloadFolder();
 
-    final allTasks = await FlutterDownloader.loadTasks();
+    final allTasks = (await (FlutterDownloader.loadTasks())) ?? [];
     final verifiedTasks = await verifyTasks(allTasks);
     final allowedTasks = await _deleteExtraTasks(verifiedTasks);
 
@@ -103,9 +104,9 @@ class ForgroundDownloadManager {
         )))));
 
     _port.listen((data) {
-      final String id = data[0];
-      final DownloadTaskStatus status = data[1];
-      final int progress = data[2];
+      final String? id = data[0];
+      final DownloadTaskStatus? status = data[1];
+      final int? progress = data[2];
 
       // When the download is started, a message may be passed before the start
       // method returns an ID, so the map won't have a value yet.
@@ -114,7 +115,7 @@ class ForgroundDownloadManager {
         return;
       }
 
-      _progressStreams[downloadIds[id]].add(
+      _progressStreams[downloadIds[id]!]!.add(
           MinimalDownloadState(progress: progress, status: status, taskId: id));
     });
   }
@@ -135,7 +136,7 @@ class ForgroundDownloadManager {
   }
 
   /// Initiate download of the given [url]. Returns stream of progress updates.
-  Future<Stream<MinimalDownloadState>> download(String url) async {
+  Future<Stream<MinimalDownloadState>?> download(String url) async {
     final currentStatus =
         _progressStreams[url]?.value?.status ?? DownloadTaskStatus.undefined;
     if (![
@@ -165,14 +166,14 @@ class ForgroundDownloadManager {
     return _progressStreams[url];
   }
 
-  Stream<MinimalDownloadState> getProgressStreamFromUrl(String url) {
+  Stream<MinimalDownloadState>? getProgressStreamFromUrl(String url) {
     if (!_progressStreams.containsKey(url)) {
       _progressStreams[url] = BehaviorSubject.seeded(
           MinimalDownloadState(status: DownloadTaskStatus.undefined));
 
       // Don't clutter memory with not downloaded streams.
-      _progressStreams[url].onCancel = () {
-        if (_progressStreams[url].value.status ==
+      _progressStreams[url]!.onCancel = () {
+        if (_progressStreams[url]!.value!.status ==
             DownloadTaskStatus.undefined) {
           _progressStreams.remove(url);
         }
@@ -188,7 +189,7 @@ class ForgroundDownloadManager {
   // remove the task.
   Future<List<DownloadTask>> verifyTasks(List<DownloadTask> allTasks) async {
     final fileExistsFutures = allTasks
-        .where((element) => (element.progress ?? 0) > 0)
+        .where((element) => element.progress > 0)
         .toList()
         .map((e) async {
       if (!await File(
@@ -210,14 +211,14 @@ class ForgroundDownloadManager {
   }
 
   Future<List<DownloadTask>> _deleteExtraTasks(List<DownloadTask> tasks) async {
-    if (maxDownloads == null || tasks.length <= maxDownloads) {
+    if (maxDownloads == null || tasks.length <= maxDownloads!) {
       return tasks;
     }
 
-    final amountToDelete = tasks.length - maxDownloads;
+    final amountToDelete = tasks.length - maxDownloads!;
     // Delete the oldest items.
     final toDelete = tasks
-        .sortBy((task) => task.timeCreated, keyComparer: null)
+        .sortBy((task) => task.timeCreated)
         .toList()
         .take(amountToDelete)
         .toList();
@@ -244,9 +245,9 @@ void downloadCallback(String id, DownloadTaskStatus status, int progress) {
 }
 
 class MinimalDownloadState {
-  final String taskId;
-  final DownloadTaskStatus status;
-  final int progress;
+  final String? taskId;
+  final DownloadTaskStatus? status;
+  final int? progress;
 
   MinimalDownloadState({this.taskId, this.status, this.progress});
 }

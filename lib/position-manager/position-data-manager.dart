@@ -13,7 +13,7 @@ import 'package:dart_extensions/dart_extensions.dart';
 abstract class IPositionDataManager {
   Future<Duration> getPosition(String id);
 
-  Future<List<Position>> getPositions(List<String> ids);
+  Future<List<Position>?> getPositions(List<String> ids);
 
   Future<void> setPosition(Position position);
 
@@ -25,16 +25,14 @@ abstract class IPositionDataManager {
 /// If the audio task is running, interacts with it to get/set postions.
 /// Otherwise, uses disk.
 class PositionDataManager extends IPositionDataManager {
-  HivePositionDataManager _hiveManager;
+  HivePositionDataManager? _hiveManager;
   final AudioServicePositionManager _serviceManager =
       AudioServicePositionManager();
 
   PositionDataManager() {
     // Disconnect hive whenever audio state is running.
     AudioService.playbackStateStream
-        .map((state) =>
-            (state?.processingState ?? AudioProcessingState.none) !=
-            AudioProcessingState.none)
+        .map((state) => (state.processingState) != AudioProcessingState.none)
         .distinct()
         .where((isAudioServiceRunning) => isAudioServiceRunning)
         .listen((isAudioServiceRunning) {
@@ -51,7 +49,7 @@ class PositionDataManager extends IPositionDataManager {
   Future<Duration> getPosition(String id) => _activeManager.getPosition(id);
 
   @override
-  Future<List<Position>> getPositions(List<String> ids) =>
+  Future<List<Position>?> getPositions(List<String> ids) =>
       _activeManager.getPositions(ids);
 
   @override
@@ -156,10 +154,10 @@ class AudioServicePositionManager extends IPositionDataManager {
 
   @override
   Future<Duration> getPosition(String id) async =>
-      (await getPositions([id])).first.position;
+      (await getPositions([id]))!.first.position;
 
   @override
-  Future<List<Position>> getPositions(List<String> ids) async {
+  Future<List<Position>?> getPositions(List<String> ids) async {
     var sendPort;
 
     // Wait for the send port to be available.

@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter/foundation.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/audio-state-base.dart';
 import 'package:just_audio_service/background/audio-states/connecting-state.dart';
@@ -17,27 +15,27 @@ class SeekingState extends MediaStateBase {
   bool get didAbandonSeek => !didPersistSeek;
 
   /// Keep track of if we give up on seeking in the middle. For example, connect to other media.
-  bool get didPersistSeek => this == context.stateHandler;
+  bool get didPersistSeek => this == context!.stateHandler;
 
   final Completer<void> _doneSeeking = Completer();
 
-  SeekingState({@required AudioContextBase context}) : super(context: context);
+  SeekingState({required AudioContextBase? context}) : super(context: context);
 
   @override
   Future<void> pause() async {
     await _doneSeeking.future;
-    if (didPersistSeek) await context.stateHandler.pause();
+    if (didPersistSeek) await context!.stateHandler!.pause();
   }
 
   @override
   Future<void> play() async {
     await _doneSeeking.future;
-    if (didPersistSeek) await context.stateHandler.play();
+    if (didPersistSeek) await context!.stateHandler!.play();
   }
 
   @override
-  Future<void> seek(Duration position) async {
-    if (position > context.mediaItem.duration) {
+  Future<void> seek(Duration? position) async {
+    if (position! > context!.mediaItem.duration!) {
       return;
     }
 
@@ -49,20 +47,20 @@ class SeekingState extends MediaStateBase {
 
     ++numSeeking;
 
-    final basicState = position > context.playBackState.currentPosition
+    final basicState = position > context!.playBackState!.currentPosition
         ? AudioProcessingState.fastForwarding
         : AudioProcessingState.rewinding;
 
     // We're trying to get to that spot.
     await setMediaState(
         state: basicState,
-        justAudioState: context.mediaPlayer.playerState.processingState,
+        justAudioState: context!.mediaPlayer.playerState.processingState,
         position: position);
 
     // Don't await. I'm not sure if it will complete before or after it's finished seeking,
     // so I'll check myself for when it reaches the correct position later.
     // TODO: This section could use some work.
-    await context.mediaPlayer.seek(position);
+    await context!.mediaPlayer.seek(position);
 
     // TODO :remove commented out code, update previous comment.
     // final reachedPositionState = await context.mediaPlayer.playbackEventStream
@@ -91,14 +89,14 @@ class SeekingState extends MediaStateBase {
     // We made it to wanted place in media.
     await setMediaState(
         state: MediaStateBase
-            .stateToStateMap[context.mediaPlayer.playerState.processingState],
-        justAudioState: context.mediaPlayer.processingState,
+            .stateToStateMap[context!.mediaPlayer.playerState.processingState],
+        justAudioState: context!.mediaPlayer.processingState,
         position: position);
 
     // Set the state handler before calling complete() on doneSeeking.
     // This ensures that any calls to play() or pause() go to the playing state, not
     // an unending recursive call.
-    context.stateHandler = PlayingState(context: context);
+    context!.stateHandler = PlayingState(context: context as AudioContext?);
 
     // Only notify pause method that seeking was completed after everything was done.
     // This simplifies state considerations.
@@ -111,11 +109,11 @@ class SeekingState extends MediaStateBase {
 
   @override
   Future<void> setUrl(String url) async {
-    if (url == context.mediaItem.id) {
+    if (url == context!.mediaItem.id) {
       return;
     }
 
-    context.stateHandler = ConnectingState(context: context);
-    await context.stateHandler.setUrl(url);
+    context!.stateHandler = ConnectingState(context: context as AudioContext?);
+    await context!.stateHandler!.setUrl(url);
   }
 }

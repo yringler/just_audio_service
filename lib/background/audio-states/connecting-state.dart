@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:path_provider/path_provider.dart' as path;
 import 'package:path/path.dart' as p;
 import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/audio-state-base.dart';
@@ -13,14 +11,14 @@ class ConnectingState extends MediaStateBase {
   Completer<void> _completer = Completer();
 
   // This handler handles state itself.
-  ConnectingState({@required AudioContext context})
+  ConnectingState({required AudioContext? context})
       : super(context: context, reactToStream: false);
 
   @override
   Future<void> pause() async {}
 
   @override
-  Future<void> seek(Duration position) async =>
+  Future<void> seek(Duration? position) async =>
       // TODO: This should also update the client position (instead of just relying on
       // the position manager)
       super.setFutureSeekValue(position);
@@ -29,8 +27,8 @@ class ConnectingState extends MediaStateBase {
   Future<void> play() async {
     await _completer.future;
 
-    context.stateHandler = PlayingState(context: context);
-    await context.stateHandler.play();
+    context!.stateHandler = PlayingState(context: context as AudioContext?);
+    await context!.stateHandler!.play();
   }
 
   @override
@@ -38,7 +36,7 @@ class ConnectingState extends MediaStateBase {
     reactToStream = false;
     try {
       // If URL is called multiple times with same value, ignore.
-      if (url == context.mediaItem?.id) {
+      if (url == context!.mediaItem.id) {
         return;
       }
 
@@ -61,10 +59,10 @@ class ConnectingState extends MediaStateBase {
      * Notify that connecting to media.
      */
 
-      final publicId = context.urlToIdMap[url] ?? url;
+      final publicId = context!.urlToIdMap[url] ?? url;
 
       // Notify what is being played.
-      context.mediaItem =
+      context!.mediaItem =
           MediaItem(id: publicId, album: "lessons", title: "lesson");
       // Notify the state (ie, connecting).
       super.setMediaState(
@@ -72,13 +70,13 @@ class ConnectingState extends MediaStateBase {
           justAudioState: ProcessingState.loading);
 
       // Don't continue playing current audio when switched to new.
-      await context.mediaPlayer.pause();
+      await context!.mediaPlayer.pause();
 
       if (url.startsWith(p.separator)) {
         url = Uri.file(url).toString();
       }
 
-      final duration = await context.mediaPlayer.setUrl(url);
+      final duration = await context!.mediaPlayer.setUrl(url);
 
       // If we switched to something else while this file was loading,
       // forget about it.
@@ -90,7 +88,7 @@ class ConnectingState extends MediaStateBase {
       // Notify length of media.
       // TODO: Provide way to client to specify duration in media item if
       // it's already known.
-      context.mediaItem = context.mediaItem.copyWith(duration: duration);
+      context!.mediaItem = context!.mediaItem.copyWith(duration: duration);
 
       // super.setMediaState(
       //     state: AudioProcessingState.ready,

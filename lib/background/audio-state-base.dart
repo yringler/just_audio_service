@@ -1,5 +1,4 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_service/background/audio-context.dart';
 import 'package:just_audio_service/background/audio-states/stopped-state.dart';
@@ -61,10 +60,10 @@ abstract class MediaStateBase {
   //   }
   // };
 
-  final AudioContextBase context;
+  final AudioContextBase? context;
 
   /// Whether media player state streams should be ignored.
-  bool reactToStream;
+  late bool reactToStream;
 
   MediaStateBase({this.context, bool reactToStream = true}) {
     this.reactToStream = reactToStream;
@@ -75,73 +74,73 @@ abstract class MediaStateBase {
   /// want that event to be handled for whatever reason.
   void onPlaybackEvent(PlaybackEvent event) async {
     if (reactToStream) {
-      await context.setPlaybackState(PlaybackState(
+      await context!.setPlaybackState(PlaybackState(
           repeatMode: AudioServiceRepeatMode.none,
           shuffleMode: AudioServiceShuffleMode.none,
-          processingState: stateToStateMap[event.processingState],
+          processingState: stateToStateMap[event.processingState]!,
           // TODO: playing should come from a stream.
           actions:
-              getAction(event.processingState, context.mediaPlayer.playing),
+              getAction(event.processingState, context!.mediaPlayer.playing),
           position: event.updatePosition,
           updateTime: event.updateTime,
-          playing: context.mediaPlayer.playing,
+          playing: context!.mediaPlayer.playing,
           bufferedPosition: event.bufferedPosition,
-          speed: context.mediaPlayer.speed));
+          speed: context!.mediaPlayer.speed));
     }
   }
 
   Future<void> setUrl(String url);
   Future<void> pause();
   Future<void> play();
-  Future<void> seek(Duration position);
+  Future<void> seek(Duration? position);
   Future<void> stop() async {
-    context.stateHandler = StoppedState(context: context);
-    await context.stateHandler.stop();
+    context!.stateHandler = StoppedState(context: context as AudioContext?);
+    await context!.stateHandler!.stop();
   }
 
   Future<void> setVolume(double volume) =>
-      context.mediaPlayer.setVolume(volume);
+      context!.mediaPlayer.setVolume(volume);
 
   /// Set playback speed. By default, updates the [AudioContext.generalPlaybackSettings] but not the
   /// speed, to allow changing speed while paused without returning to play.
-  Future<void> setSpeed(double speed) async {
-    context.generalPlaybackSettings =
-        context.generalPlaybackSettings?.copyWith(speed: speed) ??
+  Future<void> setSpeed(double? speed) async {
+    context!.generalPlaybackSettings =
+        context!.generalPlaybackSettings?.copyWith(speed: speed) ??
             GeneralPlaybackSettings(speed: speed);
 
     // Even if nothing is playing right now, the UI should know what the speed
     // will be (eventually).
 
-    await context
-        .setPlaybackState(context.playBackState.copyWith(speed: speed));
+    await context!
+        .setPlaybackState(context!.playBackState!.copyWith(speed: speed));
   }
 
   Future<void> setMediaState(
-      {@required AudioProcessingState state,
-      @required ProcessingState justAudioState,
-      Duration position}) async {
-    if (context.stateHandler != this) {
+      {required AudioProcessingState? state,
+      required ProcessingState justAudioState,
+      Duration? position}) async {
+    if (context!.stateHandler != this) {
       return;
     }
 
-    position ??= context.upcomingPlaybackSettings?.position ?? Duration.zero;
+    position ??= context!.upcomingPlaybackSettings?.position ?? Duration.zero;
 
-    await context.setPlaybackState(PlaybackState(
+    await context!.setPlaybackState(PlaybackState(
         repeatMode: AudioServiceRepeatMode.none,
         shuffleMode: AudioServiceShuffleMode.none,
-        processingState: state,
+        processingState: state!,
         // TODO: playing should come from stream.
-        actions: getAction(justAudioState, context.mediaPlayer.playing),
+        actions: getAction(justAudioState, context!.mediaPlayer.playing),
         position: position,
         updateTime: DateTime.now(),
-        speed: context.generalPlaybackSettings?.speed ?? 1,
+        speed: context!.generalPlaybackSettings?.speed ?? 1,
         // TODO: playing should come from stream.
-        playing: context.mediaPlayer.playing,
-        bufferedPosition: context.mediaPlayer.playbackEvent.bufferedPosition));
+        playing: context!.mediaPlayer.playing,
+        bufferedPosition: context!.mediaPlayer.playbackEvent.bufferedPosition));
   }
 
   /// Set the [UpcomingPlaybackSettings.position] of [AudioContextBase.upcomingPlaybackSettings] to the given position.
-  void setFutureSeekValue(Duration position) =>
-      context.upcomingPlaybackSettings =
+  void setFutureSeekValue(Duration? position) =>
+      context!.upcomingPlaybackSettings =
           UpcomingPlaybackSettings(position: position);
 }

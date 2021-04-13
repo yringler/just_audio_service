@@ -104,7 +104,7 @@ class MainScreen extends StatelessWidget {
           AudioService.playbackStateStream,
           (mediaItem, playbackState) => ScreenState(mediaItem, playbackState));
 
-  RaisedButton audioPlayerButton() => startButton(
+  Widget audioPlayerButton() => startButton(
       'AudioPlayer',
       () => AudioService.start(
                   backgroundTaskEntrypoint: _audioPlayerTaskEntrypoint,
@@ -118,8 +118,7 @@ class MainScreen extends StatelessWidget {
             await AudioService.playFromMediaId(audioUrl);
           }));
 
-  RaisedButton startButton(String label, VoidCallback onPressed) =>
-      RaisedButton(
+  Widget startButton(String label, VoidCallback onPressed) => ElevatedButton(
         child: Text(label),
         onPressed: onPressed,
       );

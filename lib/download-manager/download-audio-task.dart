@@ -1,7 +1,5 @@
 import 'dart:isolate';
 import 'dart:ui';
-
-import 'package:flutter/foundation.dart';
 import 'package:just_audio_service/background/audio-task-decorator.dart';
 import 'package:just_audio_service/background/icontext-audio-task.dart';
 import 'package:just_audio_service/background/audio-task.dart';
@@ -16,9 +14,9 @@ class DownloadAudioTask extends AudioTaskDecorater {
   Map<String, String> idToUrlMap = {};
   ReceivePort _completedPort = ReceivePort();
   ReceivePort _newAdded = ReceivePort();
-  String _downloadPath;
+  late String _downloadPath;
 
-  DownloadAudioTask({@required IContextAudioTask audioTask})
+  DownloadAudioTask({required IContextAudioTask audioTask})
       : super(baseTask: audioTask);
 
   DownloadAudioTask.standard() : this(audioTask: AudioTask());
@@ -33,10 +31,10 @@ class DownloadAudioTask extends AudioTaskDecorater {
 
   // Must be passed a set of all completed downloads on start.
   @override
-  Future<void> onStart(Map<String, dynamic> params) async {
+  Future<void> onStart(Map<String, dynamic>? params) async {
     try {
       completedDownloads =
-          (params['completed'] as List<dynamic>).cast<String>().toSet();
+          (params!['completed'] as List<dynamic>).cast<String>().toSet();
       idToUrlMap =
           (params['id_to_url'] as Map<dynamic, dynamic>).cast<String, String>();
     } catch (e) {
@@ -54,19 +52,19 @@ class DownloadAudioTask extends AudioTaskDecorater {
         _completedPort.sendPort, completedDownloadPortName);
 
     _completedPort.listen((message) async {
-      final String taskId = message;
+      final String? taskId = message;
       assert(idToUrlMap.containsKey(taskId));
 
-      final webUrl = idToUrlMap[taskId];
+      final webUrl = idToUrlMap[taskId!]!;
       final fileUrl = _getFilePath(webUrl);
       completedDownloads.add(webUrl);
       context.urlToIdMap[fileUrl] = webUrl;
 
       if (context.mediaItem.id == webUrl) {
-        final currentPosition = context.playBackState.currentPosition;
-        context.stateHandler.setUrl(fileUrl).then((value) {
-          context.stateHandler.seek(currentPosition);
-          context.stateHandler.play();
+        final currentPosition = context.playBackState!.currentPosition;
+        context.stateHandler!.setUrl(fileUrl).then((value) {
+          context.stateHandler!.seek(currentPosition);
+          context.stateHandler!.play();
         });
       }
     });
@@ -76,8 +74,8 @@ class DownloadAudioTask extends AudioTaskDecorater {
         _newAdded.sendPort, updateTaskIdUrlPortName);
 
     _newAdded.listen((message) {
-      final entry = message as MapEntry<String, String>;
-      idToUrlMap.addEntries([entry]);
+      final entry = message as MapEntry<String, String>?;
+      idToUrlMap.addEntries([entry!]);
     });
 
     super.onStart(params);

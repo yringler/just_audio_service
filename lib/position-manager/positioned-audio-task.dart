@@ -4,7 +4,6 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:just_audio_service/background/audio-task-decorator.dart';
 import 'package:just_audio_service/background/audio-task.dart';
 import 'package:just_audio_service/background/icontext-audio-task.dart';
@@ -20,7 +19,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
   static const String GetPositionsCommand = 'getPosition';
   static const String SetPositionCommand = 'setPosition';
 
-  final IPositionDataManager dataManager;
+  final IPositionDataManager? dataManager;
 
   final ReceivePort _receivePort = ReceivePort();
 
@@ -28,9 +27,9 @@ class PositionedAudioTask extends AudioTaskDecorater {
   /// Here, we keep track of when things are ready. This is awaited in [_answerPortMessage(message)].
   final Completer<void> _readyToAnswerMessages = Completer();
 
-  StreamSubscription subscription;
+  late StreamSubscription subscription;
 
-  PositionedAudioTask({@required IContextAudioTask audioTask, this.dataManager})
+  PositionedAudioTask({required IContextAudioTask audioTask, this.dataManager})
       : super(baseTask: audioTask) {
     IsolateNameServer.removePortNameMapping(SendPortID);
     IsolateNameServer.registerPortWithName(_receivePort.sendPort, SendPortID);
@@ -43,10 +42,10 @@ class PositionedAudioTask extends AudioTaskDecorater {
       : this(audioTask: AudioTask(), dataManager: HivePositionDataManager());
 
   @override
-  Future<void> onStart(Map<String, dynamic> params) async {
+  Future<void> onStart(Map<String, dynamic>? params) async {
     // This must be called on start to ensure that we know the psition if UI
     // asks for it.
-    await dataManager.init();
+    await dataManager!.init();
 
     _readyToAnswerMessages.complete();
 
@@ -56,13 +55,13 @@ class PositionedAudioTask extends AudioTaskDecorater {
         .where((event) =>
             event.playing ||
             event.processingState == AudioProcessingState.ready)
-        .listen((state) => dataManager.setPosition(Position(
+        .listen((state) => dataManager!.setPosition(Position(
             id: context.mediaItem.id, position: state.currentPosition)));
 
     context.mediaStateStream
         .where(
             (event) => event.processingState == AudioProcessingState.completed)
-        .listen((state) => dataManager.setPosition(
+        .listen((state) => dataManager!.setPosition(
             Position(id: context.mediaItem.id, position: Duration.zero)));
 
     await super.onStart(params);
@@ -76,10 +75,10 @@ class PositionedAudioTask extends AudioTaskDecorater {
     // and the process ending e.g. through swiping away the notification, so
     // interpert stop in the traditional method of "start from begginging".
     final position = Platform.isAndroid &&
-            context.playBackState.processingState !=
+            context.playBackState!.processingState !=
                 AudioProcessingState.completed
         ? Duration.zero
-        : context.playBackState.currentPosition;
+        : context.playBackState!.currentPosition;
 
     await _endTaskAtPosition(position);
   }
@@ -87,7 +86,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
   @override
   Future<void> onPlayFromMediaId(String mediaId) async {
     final startPosition =
-        await dataManager.getPosition(context.getIdFromUrl(mediaId));
+        await dataManager!.getPosition(context.getIdFromUrl(mediaId));
 
     if (startPosition != Duration.zero) {
       context.upcomingPlaybackSettings =
@@ -102,16 +101,16 @@ class PositionedAudioTask extends AudioTaskDecorater {
 
   @override
   Future<void> onClose() =>
-      _endTaskAtPosition(context.playBackState.currentPosition);
+      _endTaskAtPosition(context.playBackState!.currentPosition);
 
   Future<void> _endTaskAtPosition(Duration position) async {
-    await dataManager
+    await dataManager!
         .setPosition(Position(id: context.mediaItem.id, position: position));
 
     IsolateNameServer.removePortNameMapping(SendPortID);
     _receivePort.close();
     subscription.cancel();
-    await dataManager.close();
+    await dataManager!.close();
 
     await super.onStop();
   }
@@ -131,8 +130,8 @@ class PositionedAudioTask extends AudioTaskDecorater {
 
         /// The final arguments are the IDs to retrieve.
         final idsToGetPositionOf = (message[2] as List<dynamic>).cast<String>();
-        final sendablePositions = (await dataManager
-                .getPositions(idsToGetPositionOf))
+        final sendablePositions = (await dataManager!
+                .getPositions(idsToGetPositionOf))!
             .map((position) => [position.id, position.position.inMilliseconds])
             .toList();
         sendPort.send(sendablePositions);
@@ -143,7 +142,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
         final idToSet = message[2] as String;
         final position = Position(
             id: idToSet, position: Duration(milliseconds: message[3] as int));
-        await dataManager.setPosition(position);
+        await dataManager!.setPosition(position);
         break;
     }
   }

@@ -14,35 +14,35 @@ class PositionManager {
   static const positionUpdateTime = Duration(milliseconds: 50);
 
   // Ensure that seeks don't happen to frequently.
-  final BehaviorSubject<Position> _seekingValues = BehaviorSubject.seeded(null);
-  final BehaviorSubject<Position> _positionSubject =
+  final BehaviorSubject<Position?> _seekingValues =
+      BehaviorSubject.seeded(null);
+  final BehaviorSubject<Position?> _positionSubject =
       BehaviorSubject.seeded(Position(id: null, position: Duration.zero));
 
   /// Optional. If it's set, will be used to persist the position.
-  final IPositionDataManager positionDataManager;
+  final IPositionDataManager? positionDataManager;
 
   /// When a seek is requested, ignore position updates from audio_service for a little bit,
   /// to give it time to react to the seek.
-  DateTime _ignoreAudioServiceUntil;
+  DateTime? _ignoreAudioServiceUntil;
 
   PositionManager({this.positionDataManager}) {
     // Make sure that we always keep up to date on audio_service media position.
     Rx.combineLatest2<PlaybackState, dynamic, PlaybackState>(
-            AudioService.playbackStateStream.where((state) =>
-                (state?.processingState ?? AudioProcessingState.none) !=
-                AudioProcessingState.none),
-            Stream.periodic(positionUpdateTime),
-            (state, _) => state)
-        .where((_) => _isAudioServiceEventRelevant())
-        .listen((state) => _positionSubject.add(Position(
-            id: AudioService.currentMediaItem.id,
+        AudioService.playbackStateStream.where(
+            (state) => (state.processingState) != AudioProcessingState.none),
+        Stream.periodic(positionUpdateTime),
+        (state, _) =>
+            state).where((_) => _isAudioServiceEventRelevant()).listen(
+        (state) => _positionSubject.add(Position(
+            id: AudioService.currentMediaItem!.id,
             position: state.currentPosition)));
 
     // Seek, but not to often.
     _seekingValues
         .sampleTime(positionUpdateTime)
-        .where((position) => position != null)
-        .listen(_realSeek);
+        .where(((position) => position != null))
+        .listen(_realSeek as void Function(Position?)?);
 
     _seekingValues.where((position) => position != null).listen((event) {
       _positionSubject.add(event);
@@ -51,7 +51,7 @@ class PositionManager {
   }
 
   /// Stream of media position, not only of current media.
-  Stream<Position> get positionStream => _positionSubject.stream;
+  Stream<Position?> get positionStream => _positionSubject.stream;
 
   /// Stream of positions and states.
   /// Also useful because it provides access to the media item.
@@ -61,13 +61,13 @@ class PositionManager {
   /// not making another class just for this.
   /// Enjoy!
   Stream<PositionState> get positionStateStream =>
-      Rx.combineLatest3<Position, PlaybackState, MediaItem, PositionState>(
+      Rx.combineLatest3<Position?, PlaybackState, MediaItem?, PositionState>(
           positionStream,
           AudioService.playbackStateStream,
           AudioService.currentMediaItemStream,
           (position, state, mediaItem) => PositionState(
               position: position,
-              state: mediaItem?.id == position.id ? state : null,
+              state: mediaItem?.id == position!.id ? state : null,
               mediaItem: mediaItem?.id == position.id ? mediaItem : null));
 
   Stream<PositionState> positionStateStreamOf(String mediaId) =>
@@ -75,23 +75,23 @@ class PositionManager {
 
   /// Updates the current location in given media, for the given ID. If ID is ommited,
   /// will effect current media.
-  void seek(Duration location, {String id}) {
+  void seek(Duration location, {String? id}) {
     _seekingValues.add(Position(
         id: id ?? AudioService.currentMediaItem?.id, position: location));
   }
 
   /// Skips the requested time span for the given id. If ID is ommited, will
   /// effect current media.
-  Future<void> skip(Duration duration, {String id}) async {
-    Duration currentLocation;
+  Future<void> skip(Duration duration, {String? id}) async {
+    Duration? currentLocation;
 
     if (id == null || id == AudioService.currentMediaItem?.id) {
       currentLocation = _positionSubject.value?.position;
     } else if (positionDataManager != null) {
-      currentLocation = await positionDataManager.getPosition(id);
+      currentLocation = await positionDataManager!.getPosition(id);
     }
 
-    seek(currentLocation + duration, id: id);
+    seek(currentLocation! + duration, id: id);
   }
 
   void dispose() {
@@ -105,7 +105,7 @@ class PositionManager {
     if (event.id == null || event.id == AudioService.currentMediaItem?.id) {
       AudioService.seekTo((event.position));
     } else if (positionDataManager != null) {
-      positionDataManager.setPosition(event);
+      positionDataManager!.setPosition(event);
     }
   }
 
@@ -119,7 +119,7 @@ class PositionManager {
       return true;
     }
 
-    if (_ignoreAudioServiceUntil.isBefore(DateTime.now())) {
+    if (_ignoreAudioServiceUntil!.isBefore(DateTime.now())) {
       return false;
     }
 
@@ -135,9 +135,9 @@ class PositionManager {
 
 /// A position which keeps track of state.
 class PositionState {
-  final Position position;
-  final PlaybackState state;
-  final MediaItem mediaItem;
+  final Position? position;
+  final PlaybackState? state;
+  final MediaItem? mediaItem;
 
   PositionState({this.position, this.state, this.mediaItem});
 }
