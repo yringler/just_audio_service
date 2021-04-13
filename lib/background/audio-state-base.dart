@@ -9,7 +9,7 @@ import 'package:just_audio_service/util/playback-state-extensions.dart';
 abstract class MediaStateBase {
   static const stateToStateMap = {
     ProcessingState.loading: AudioProcessingState.connecting,
-    ProcessingState.none: AudioProcessingState.none,
+    ProcessingState.idle: AudioProcessingState.none,
     ProcessingState.completed: AudioProcessingState.completed,
     ProcessingState.ready: AudioProcessingState.ready,
     ProcessingState.buffering: AudioProcessingState.buffering
@@ -18,7 +18,7 @@ abstract class MediaStateBase {
   static Set<MediaAction> getAction(ProcessingState state, bool playing) {
     switch (state) {
       case ProcessingState.loading:
-      case ProcessingState.none:
+      case ProcessingState.idle:
       case ProcessingState.completed:
         return {MediaAction.playFromMediaId};
       case ProcessingState.buffering:
@@ -76,13 +76,14 @@ abstract class MediaStateBase {
   void onPlaybackEvent(PlaybackEvent event) async {
     if (reactToStream) {
       await context.setPlaybackState(PlaybackState(
+          repeatMode: AudioServiceRepeatMode.none,
+          shuffleMode: AudioServiceShuffleMode.none,
           processingState: stateToStateMap[event.processingState],
           // TODO: playing should come from a stream.
           actions:
               getAction(event.processingState, context.mediaPlayer.playing),
           position: event.updatePosition,
-          updateTime:
-              Duration(milliseconds: event.updateTime.millisecondsSinceEpoch),
+          updateTime: event.updateTime,
           playing: context.mediaPlayer.playing,
           bufferedPosition: event.bufferedPosition,
           speed: context.mediaPlayer.speed));
@@ -126,12 +127,13 @@ abstract class MediaStateBase {
     position ??= context.upcomingPlaybackSettings?.position ?? Duration.zero;
 
     await context.setPlaybackState(PlaybackState(
+        repeatMode: AudioServiceRepeatMode.none,
+        shuffleMode: AudioServiceShuffleMode.none,
         processingState: state,
         // TODO: playing should come from stream.
         actions: getAction(justAudioState, context.mediaPlayer.playing),
         position: position,
-        updateTime:
-            Duration(milliseconds: DateTime.now().millisecondsSinceEpoch),
+        updateTime: DateTime.now(),
         speed: context.generalPlaybackSettings?.speed ?? 1,
         // TODO: playing should come from stream.
         playing: context.mediaPlayer.playing,

@@ -34,9 +34,9 @@ class PositionManager {
             Stream.periodic(positionUpdateTime),
             (state, _) => state)
         .where((_) => _isAudioServiceEventRelevant())
-        .listen((state) => _positionSubject.value = Position(
+        .listen((state) => _positionSubject.add(Position(
             id: AudioService.currentMediaItem.id,
-            position: state.currentPosition));
+            position: state.currentPosition)));
 
     // Seek, but not to often.
     _seekingValues
@@ -45,7 +45,7 @@ class PositionManager {
         .listen(_realSeek);
 
     _seekingValues.where((position) => position != null).listen((event) {
-      _positionSubject.value = event;
+      _positionSubject.add(event);
       _ignoreAudioServiceUntil = DateTime.now().add(positionUpdateTime * 2);
     });
   }

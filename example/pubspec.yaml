@@ -22,8 +22,8 @@ dependencies:
   
   just_audio_service:
     path: ../
-  audio_service: ^0.15.0
-  flutter_downloader: ^1.5.2
+  audio_service: ^0.17.0
+  flutter_downloader: ^1.6.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

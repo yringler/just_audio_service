@@ -31,7 +31,7 @@ String sanatizeFileName({String url}) {
     final fileName = uri.pathSegments.last;
     final nameParts = fileName.split('.');
     final suffix = nameParts.removeLast();
-    final sluggifiedName = Slugify(nameParts.join(), delimiter: '_') as String;
+    final sluggifiedName = slugify(nameParts.join(), delimiter: '_');
 
     return sluggifiedName.limitFromStart(maxSize) + '.$suffix';
   } catch (err) {
@@ -114,8 +114,8 @@ class ForgroundDownloadManager {
         return;
       }
 
-      _progressStreams[downloadIds[id]].value =
-          MinimalDownloadState(progress: progress, status: status, taskId: id);
+      _progressStreams[downloadIds[id]].add(
+          MinimalDownloadState(progress: progress, status: status, taskId: id));
     });
   }
 
@@ -147,7 +147,7 @@ class ForgroundDownloadManager {
     }
 
     final newState = MinimalDownloadState(status: DownloadTaskStatus.enqueued);
-    _progressStreams[url]?.value = newState;
+    _progressStreams[url]?.add(newState);
     _progressStreams[url] ??= BehaviorSubject.seeded(newState);
 
     final downloadId = await FlutterDownloader.enqueue(
@@ -217,7 +217,7 @@ class ForgroundDownloadManager {
     final amountToDelete = tasks.length - maxDownloads;
     // Delete the oldest items.
     final toDelete = tasks
-        .sortBy((task) => task.timeCreated)
+        .sortBy((task) => task.timeCreated, keyComparer: null)
         .toList()
         .take(amountToDelete)
         .toList();

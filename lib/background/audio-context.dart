@@ -136,7 +136,7 @@ class AudioContext extends AudioContextBase {
         speed: state.speed,
         updateTime: state.updateTime);
 
-    _mediaStateSubject.value = state;
+    _mediaStateSubject.add(state);
   }
 
   @override

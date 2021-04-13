@@ -29,7 +29,7 @@ class StoppedState extends MediaStateBase {
     await setMediaState(
         // Set state to none.
         state: AudioProcessingState.none,
-        justAudioState: ProcessingState.none,
+        justAudioState: ProcessingState.idle,
         position: currentPosition);
   }
 
