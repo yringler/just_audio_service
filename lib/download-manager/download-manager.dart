@@ -231,7 +231,7 @@ class ForgroundDownloadManager {
           .delete();
     }));
 
-    return (tasks.subtract(toDelete) as Set<DownloadTask>).toList();
+    return tasks.subtract(toDelete).toList();
   }
 }
 

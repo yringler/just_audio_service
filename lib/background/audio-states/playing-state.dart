@@ -11,7 +11,7 @@ class PlayingState extends MediaStateBase {
   Future<void> pause() => context!.mediaPlayer.pause();
 
   @override
-  Future<void> seek(Duration? position) async {
+  Future<void> seek(Duration position) async {
     context!.stateHandler = SeekingState(context: context);
     await context!.stateHandler!.seek(position);
   }
@@ -32,7 +32,7 @@ class PlayingState extends MediaStateBase {
     // Respond to seek request that was placed before playback started (when seeking wasn't neccessarily
     // possible yet).
     if (context!.upcomingPlaybackSettings?.position != null) {
-      await seek(context!.upcomingPlaybackSettings!.position);
+      await seek(context!.upcomingPlaybackSettings!.position!);
       // Reset the upcoming position. We don't want to go back there every time
       // user plays, for example after a pause.
       super.setFutureSeekValue(null);
@@ -57,7 +57,7 @@ class PlayingState extends MediaStateBase {
   Future<void> setUrl(String url) async {
     // No need to connect if we already did.
     // TODO: this check is in every change to ConnectingState. This should be less manual.
-    if (url == context!.mediaItem.id) {
+    if (url == context!.mediaItem?.id) {
       return;
     }
 

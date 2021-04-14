@@ -60,7 +60,7 @@ class DownloadAudioTask extends AudioTaskDecorater {
       completedDownloads.add(webUrl);
       context.urlToIdMap[fileUrl] = webUrl;
 
-      if (context.mediaItem.id == webUrl) {
+      if (context.mediaItem?.id == webUrl) {
         final currentPosition = context.playBackState!.currentPosition;
         context.stateHandler!.setUrl(fileUrl).then((value) {
           context.stateHandler!.seek(currentPosition);

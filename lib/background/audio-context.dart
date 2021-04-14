@@ -77,10 +77,10 @@ abstract class AudioContextBase {
   Stream<PlaybackState> get mediaStateStream;
 
   /// Get current media item.
-  MediaItem get mediaItem;
+  MediaItem? get mediaItem;
 
   /// Set current media item.
-  set mediaItem(MediaItem item);
+  set mediaItem(MediaItem? item);
 
   /// Get the current playback state.
   PlaybackState? get playBackState;
@@ -104,7 +104,7 @@ abstract class AudioContextBase {
 }
 
 class AudioContext extends AudioContextBase {
-  late MediaItem _mediaItem;
+  MediaItem? _mediaItem;
   BehaviorSubject<PlaybackState> _mediaStateSubject = BehaviorSubject();
 
   AudioContext() : super(mediaPlayer: AudioPlayer());
@@ -113,9 +113,13 @@ class AudioContext extends AudioContextBase {
   GeneralPlaybackSettings? generalPlaybackSettings;
 
   @override
-  MediaItem get mediaItem => _mediaItem;
+  MediaItem? get mediaItem => _mediaItem;
   @override
-  set mediaItem(MediaItem item) {
+  set mediaItem(MediaItem? item) {
+    if (item == null) {
+      return;
+    }
+
     AudioServiceBackground.setMediaItem(item);
     _mediaItem = item;
   }

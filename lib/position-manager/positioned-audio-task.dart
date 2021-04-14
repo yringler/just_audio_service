@@ -56,13 +56,13 @@ class PositionedAudioTask extends AudioTaskDecorater {
             event.playing ||
             event.processingState == AudioProcessingState.ready)
         .listen((state) => dataManager!.setPosition(Position(
-            id: context.mediaItem.id, position: state.currentPosition)));
+            id: context.mediaItem!.id, position: state.currentPosition)));
 
     context.mediaStateStream
         .where(
             (event) => event.processingState == AudioProcessingState.completed)
         .listen((state) => dataManager!.setPosition(
-            Position(id: context.mediaItem.id, position: Duration.zero)));
+            Position(id: context.mediaItem!.id, position: Duration.zero)));
 
     await super.onStart(params);
   }
@@ -105,7 +105,7 @@ class PositionedAudioTask extends AudioTaskDecorater {
 
   Future<void> _endTaskAtPosition(Duration position) async {
     await dataManager!
-        .setPosition(Position(id: context.mediaItem.id, position: position));
+        .setPosition(Position(id: context.mediaItem!.id, position: position));
 
     IsolateNameServer.removePortNameMapping(SendPortID);
     _receivePort.close();

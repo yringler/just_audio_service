@@ -36,7 +36,7 @@ class ConnectingState extends MediaStateBase {
     reactToStream = false;
     try {
       // If URL is called multiple times with same value, ignore.
-      if (url == context!.mediaItem.id) {
+      if (url == context!.mediaItem?.id) {
         return;
       }
 
@@ -88,7 +88,7 @@ class ConnectingState extends MediaStateBase {
       // Notify length of media.
       // TODO: Provide way to client to specify duration in media item if
       // it's already known.
-      context!.mediaItem = context!.mediaItem.copyWith(duration: duration);
+      context!.mediaItem = context!.mediaItem?.copyWith(duration: duration);
 
       // super.setMediaState(
       //     state: AudioProcessingState.ready,

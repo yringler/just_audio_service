@@ -42,7 +42,7 @@ class PositionManager {
     _seekingValues
         .sampleTime(positionUpdateTime)
         .where(((position) => position != null))
-        .listen(_realSeek as void Function(Position?)?);
+        .listen((position) => _realSeek(position!));
 
     _seekingValues.where((position) => position != null).listen((event) {
       _positionSubject.add(event);

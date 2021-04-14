@@ -92,7 +92,7 @@ abstract class MediaStateBase {
   Future<void> setUrl(String url);
   Future<void> pause();
   Future<void> play();
-  Future<void> seek(Duration? position);
+  Future<void> seek(Duration position);
   Future<void> stop() async {
     context!.stateHandler = StoppedState(context: context as AudioContext?);
     await context!.stateHandler!.stop();

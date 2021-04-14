@@ -34,8 +34,9 @@ class SeekingState extends MediaStateBase {
   }
 
   @override
-  Future<void> seek(Duration? position) async {
-    if (position! > context!.mediaItem.duration!) {
+  Future<void> seek(Duration position) async {
+    if (context?.mediaItem?.duration == null ||
+        position > context!.mediaItem!.duration!) {
       return;
     }
 
@@ -109,7 +110,7 @@ class SeekingState extends MediaStateBase {
 
   @override
   Future<void> setUrl(String url) async {
-    if (url == context!.mediaItem.id) {
+    if (url == context!.mediaItem?.id) {
       return;
     }
 
