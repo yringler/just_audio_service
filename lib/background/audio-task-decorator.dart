@@ -5,49 +5,49 @@ import 'package:just_audio_service/background/icontext-audio-task.dart';
 /// Supports mixing and matching audio tasks
 class AudioTaskDecorater extends BackgroundAudioTask
     implements IContextAudioTask {
-  final IContextAudioTask baseTask;
+  final IContextAudioTask? baseTask;
 
   @override
-  AudioContext get context => baseTask.context;
+  AudioContext get context => baseTask!.context;
 
   AudioTaskDecorater({this.baseTask});
 
   @override
-  Future<void> onStart(Map<String, dynamic> params) => baseTask.onStart(params);
+  Future<void> onStart(Map<String, dynamic>? params) => baseTask!.onStart(params);
 
   @override
   // (base task is responsible to call super.onStop())
   // ignore: must_call_super
-  Future<void> onStop() => baseTask.onStop();
+  Future<void> onStop() => baseTask!.onStop();
 
   @override
-  Future<void> onPause() => baseTask.onPause();
+  Future<void> onPause() => baseTask!.onPause();
 
   @override
-  Future<void> onPlay() => baseTask.onPlay();
+  Future<void> onPlay() => baseTask!.onPlay();
 
   @override
   Future<void> onPlayFromMediaId(String mediaId) =>
-      baseTask.onPlayFromMediaId(mediaId);
+      baseTask!.onPlayFromMediaId(mediaId);
 
   @override
-  Future<void> onFastForward() => baseTask.onFastForward();
+  Future<void> onFastForward() => baseTask!.onFastForward();
 
   @override
-  Future<void> onRewind() => baseTask.onRewind();
+  Future<void> onRewind() => baseTask!.onRewind();
 
   @override
-  Future<void> onSeekTo(Duration position) => baseTask.onSeekTo(position);
+  Future<void> onSeekTo(Duration position) => baseTask!.onSeekTo(position);
   @override
   Future<dynamic> onCustomAction(String name, dynamic arguments) =>
-      baseTask.onCustomAction(name, arguments);
+      baseTask!.onCustomAction(name, arguments);
 
   @override
-  Future<void> onSetSpeed(double speed) => baseTask.onSetSpeed(speed);
+  Future<void> onSetSpeed(double speed) => baseTask!.onSetSpeed(speed);
 
   @override
-  Future<void> onTaskRemoved() => baseTask.onTaskRemoved();
+  Future<void> onTaskRemoved() => baseTask!.onTaskRemoved();
 
   @override
-  Future<void> onClose() => baseTask.onClose();
+  Future<void> onClose() => baseTask!.onClose();
 }

@@ -17,10 +17,10 @@ class PositionAdapter extends TypeAdapter<Position> {
       for (var i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Position(
-      id: fields[2] as String,
+      id: fields[2] as String?,
     )
-      .._position = fields[0] as int
-      .._createdDate = fields[1] as int;
+      .._position = fields[0] as int?
+      .._createdDate = fields[1] as int?;
   }
 
   @override

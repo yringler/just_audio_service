@@ -10,7 +10,7 @@ class AudioTask extends BackgroundAudioTask implements IContextAudioTask {
   final AudioContext context = AudioContext();
 
   @override
-  Future<void> onStart(Map<String, dynamic> params) async {
+  Future<void> onStart(Map<String, dynamic>? params) async {
     // This will be changed when we support playlists.
     // Then, on media completion we'll check if there's another file to play.
     context.mediaPlayer.playerStateStream
@@ -25,20 +25,20 @@ class AudioTask extends BackgroundAudioTask implements IContextAudioTask {
   // (calls super in dispose)
   // ignore: must_call_super
   Future<void> onStop() async { 
-    await context.stateHandler.stop();
+    await context.stateHandler!.stop();
     await _dispose();
   }
 
   @override
-  Future<void> onPause() => context.stateHandler.pause();
+  Future<void> onPause() => context.stateHandler!.pause();
 
   @override
-  Future<void> onPlay() => context.stateHandler.play();
+  Future<void> onPlay() => context.stateHandler!.play();
 
   @override
   Future<void> onPlayFromMediaId(String mediaId) async {
-    final future = context.stateHandler.setUrl(mediaId);
-    context.stateHandler.play();
+    final future = context.stateHandler!.setUrl(mediaId);
+    context.stateHandler!.play();
     await future;
   }
 
@@ -54,7 +54,7 @@ class AudioTask extends BackgroundAudioTask implements IContextAudioTask {
 
   @override
   Future<void> onSeekTo(Duration position) =>
-      context.stateHandler.seek(position);
+      context.stateHandler!.seek(position);
 
   @override
   Future<dynamic> onCustomAction(String name, dynamic arguments) async {}
@@ -65,5 +65,5 @@ class AudioTask extends BackgroundAudioTask implements IContextAudioTask {
   }
 
   @override
-  Future<void> onSetSpeed(double speed) => context.stateHandler.setSpeed(speed);
+  Future<void> onSetSpeed(double speed) => context.stateHandler!.setSpeed(speed);
 }

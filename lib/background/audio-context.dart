@@ -1,5 +1,4 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_service/background/audio-state-base.dart';
 import 'package:just_audio_service/background/audio-states/none-state.dart';
@@ -34,14 +33,14 @@ const stopControl = MediaControl(
 /// Audio settings which effect all audio.
 class GeneralPlaybackSettings {
   /// The current speed.
-  final double speed;
+  final double? speed;
 
   /// The current volume.
-  final double volume;
+  final double? volume;
 
   GeneralPlaybackSettings({this.speed, this.volume});
 
-  GeneralPlaybackSettings copyWith({double speed, double volume}) =>
+  GeneralPlaybackSettings copyWith({double? speed, double? volume}) =>
       GeneralPlaybackSettings(
           speed: speed ?? this.speed, volume: volume ?? this.volume);
 }
@@ -52,13 +51,13 @@ class GeneralPlaybackSettings {
 /// For example, when no audio is loaded we can't seek, but we can set that
 /// when we can seek, go to a certain position.
 class UpcomingPlaybackSettings {
-  final Duration position;
+  final Duration? position;
 
-  UpcomingPlaybackSettings({@required this.position});
+  UpcomingPlaybackSettings({required this.position});
 }
 
-extension UpcomingPlaybackSettingsExtensions on UpcomingPlaybackSettings {
-  copyWith({Duration position}) =>
+extension UpcomingPlaybackSettingsExtensions on UpcomingPlaybackSettings? {
+  copyWith({Duration? position}) =>
       UpcomingPlaybackSettings(position: position ?? this?.position);
 }
 
@@ -66,25 +65,25 @@ extension UpcomingPlaybackSettingsExtensions on UpcomingPlaybackSettings {
 abstract class AudioContextBase {
   final AudioPlayer mediaPlayer;
 
-  MediaStateBase stateHandler;
+  MediaStateBase? stateHandler;
 
-  AudioContextBase({@required this.mediaPlayer}) {
-    stateHandler = NoneState(context: this);
+  AudioContextBase({required this.mediaPlayer}) {
+    stateHandler = NoneState(context: this as AudioContext);
 
     mediaPlayer.playbackEventStream
-        .listen((e) => stateHandler.onPlaybackEvent(e));
+        .listen((e) => stateHandler!.onPlaybackEvent(e));
   }
 
   Stream<PlaybackState> get mediaStateStream;
 
   /// Get current media item.
-  MediaItem get mediaItem;
+  MediaItem? get mediaItem;
 
   /// Set current media item.
-  set mediaItem(MediaItem item);
+  set mediaItem(MediaItem? item);
 
   /// Get the current playback state.
-  PlaybackState get playBackState;
+  PlaybackState? get playBackState;
 
   /// Usually, the URL is the ID. Sometimes (eg when the url which is being played
   /// is a file URL), it isn't. Here, map URLs to IDs.
@@ -96,39 +95,43 @@ abstract class AudioContextBase {
   /// Set the current playback state.
   Future<void> setPlaybackState(PlaybackState playbackState);
 
-  GeneralPlaybackSettings get generalPlaybackSettings;
-  set generalPlaybackSettings(GeneralPlaybackSettings generalPlaybackSettings);
+  GeneralPlaybackSettings? get generalPlaybackSettings;
+  set generalPlaybackSettings(GeneralPlaybackSettings? generalPlaybackSettings);
 
-  UpcomingPlaybackSettings get upcomingPlaybackSettings;
+  UpcomingPlaybackSettings? get upcomingPlaybackSettings;
   set upcomingPlaybackSettings(
-      UpcomingPlaybackSettings upcomingPlaybackSettings);
+      UpcomingPlaybackSettings? upcomingPlaybackSettings);
 }
 
 class AudioContext extends AudioContextBase {
-  MediaItem _mediaItem;
+  MediaItem? _mediaItem;
   BehaviorSubject<PlaybackState> _mediaStateSubject = BehaviorSubject();
 
   AudioContext() : super(mediaPlayer: AudioPlayer());
 
   @override
-  GeneralPlaybackSettings generalPlaybackSettings;
+  GeneralPlaybackSettings? generalPlaybackSettings;
 
   @override
-  MediaItem get mediaItem => _mediaItem;
+  MediaItem? get mediaItem => _mediaItem;
   @override
-  set mediaItem(MediaItem item) {
+  set mediaItem(MediaItem? item) {
+    if (item == null) {
+      return;
+    }
+
     AudioServiceBackground.setMediaItem(item);
     _mediaItem = item;
   }
 
   @override
-  PlaybackState get playBackState => _mediaStateSubject.value;
+  PlaybackState? get playBackState => _mediaStateSubject.value;
 
   @override
   Future<void> setPlaybackState(PlaybackState state) async {
     await AudioServiceBackground.setState(
         controls: state.playing ? [pauseControl] : [playControl],
-        systemActions: state.actions?.toList() ?? List(),
+        systemActions: state.actions.toList(),
         playing: state.playing,
         bufferedPosition: state.bufferedPosition,
         processingState: state.processingState,
@@ -136,7 +139,7 @@ class AudioContext extends AudioContextBase {
         speed: state.speed,
         updateTime: state.updateTime);
 
-    _mediaStateSubject.value = state;
+    _mediaStateSubject.add(state);
   }
 
   @override
@@ -144,5 +147,5 @@ class AudioContext extends AudioContextBase {
       _mediaStateSubject.asBroadcastStream();
 
   @override
-  UpcomingPlaybackSettings upcomingPlaybackSettings;
+  UpcomingPlaybackSettings? upcomingPlaybackSettings;
 }
