@@ -1,3 +1,5 @@
+Archived. A new, from scratch plugin is being developed in a sub folder in my app https://github.com/yringler/inside-app, which, if all goes well, may end up being merged into audio_service, or split off to be its own repo.
+
 # just_audio_service
 
 # :warning: Quickly becoming obsolete
